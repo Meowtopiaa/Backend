@@ -1098,8 +1098,8 @@ class FeedingSpotManagementService
                 actor: $actor,
                 action: 'SPOT_QR_REGENERATED',
                 spotId: $spot->id,
-                oldValues: ['qr_token' => $oldToken],
-                newValues: ['qr_token' => $newToken]
+                oldValues: ['qr_regenerated' => false],
+                newValues: ['qr_regenerated' => true, 'spot_code' => $spot->code]
             );
 
             return $spot;
@@ -1274,6 +1274,68 @@ class FeedingSpotManagementService
             'status_reason' => $spot->status_reason,
             'photo_media_id' => $spot->photo_media_id,
             'photo_path' => $spot->photo_path,
+        ];
+    }
+
+    /**
+     * Query read-only riwayat perubahan lokasi spot dengan filter (MEOW-29 & MEOW-30).
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    public function getSpotHistoryQuery(array $filters = []): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = FeedingSpotHistory::query()
+            ->with([
+                'spot:id,code,name',
+                'actor:id,name',
+            ])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
+
+        if (!empty($filters['spot_id'])) {
+            $query->where('spot_id', trim((string) $filters['spot_id']));
+        }
+
+        if (!empty($filters['action'])) {
+            $query->where('action', strtoupper(trim((string) $filters['action'])));
+        }
+
+        if (!empty($filters['actor_id'])) {
+            $query->where('actor_id', trim((string) $filters['actor_id']));
+        }
+
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', (string) $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', (string) $filters['date_to']);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Format satu baris riwayat perubahan lokasi spot (MEOW-30).
+     *
+     * @return array<string, mixed>
+     */
+    public function formatSpotHistoryItem(FeedingSpotHistory $history): array
+    {
+        return [
+            'id' => $history->id,
+            'spot_id' => $history->spot_id,
+            'spot' => $history->spot ? [
+                'id' => $history->spot->id,
+                'code' => $history->spot->code,
+                'name' => $history->spot->name,
+            ] : null,
+            'actor_id' => $history->actor_id,
+            'actor_name' => $history->actor?->name ?? 'Sistem / Admin',
+            'action' => $history->action,
+            'changes' => $history->changes,
+            'reason' => $history->reason,
+            'created_at' => $history->created_at?->toIso8601String(),
         ];
     }
 
