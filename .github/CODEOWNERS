@@ -1,0 +1,8 @@
+*                       @FrdMnhdl
+/app/Modules/Core/      @FrdMnhdl
+/app/Providers/         @FrdMnhdl
+/app/Support/           @FrdMnhdl
+/bootstrap/             @FrdMnhdl
+/routes/                @FrdMnhdl
+/database/              @FrdMnhdl
+/app/Modules/Cat/       @FrdMnhdl @REKANS-LEAD
