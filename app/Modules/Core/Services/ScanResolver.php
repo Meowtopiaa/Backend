@@ -93,6 +93,17 @@ class ScanResolver
 
     protected function resolveSpotByQrToken(string $token): array
     {
+        if (\Illuminate\Support\Facades\Schema::hasTable('feeding_spot_qr_tokens')) {
+            $revoked = DB::table('feeding_spot_qr_tokens')
+                ->where('token', $token)
+                ->where('status', 'REVOKED')
+                ->exists();
+
+            if ($revoked) {
+                throw new BadRequestHttpException("QR_REVOKED: Stiker QR spot pakan ini telah dicabut/diganti. Gunakan stiker terbaru atau kode manual spot.");
+            }
+        }
+
         $spot = DB::table('feeding_spots')
             ->where('qr_token', $token)
             ->first();
