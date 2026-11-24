@@ -24,6 +24,7 @@ Route::middleware('auth')->prefix('admin/feeding')->group(function () {
         Route::post('/spots/{id}/qr', [AdminFeedingSpotController::class, 'adminPreviewRegenerateQr']);
         Route::post('/spots/{id}/cats', [AdminFeedingSpotController::class, 'adminPreviewAttachCat']);
         Route::post('/spots/{id}/cats/{catId}/detach', [AdminFeedingSpotController::class, 'adminPreviewDetachCat']);
+        Route::post('/settings', [AdminFeedingSpotController::class, 'adminPreviewUpdateSettings']);
         Route::get('/qr-sheet', [AdminFeedingSpotController::class, 'adminPreviewAllQrSheets']);
         Route::get('/spots/{id}/qr-sheet', [AdminFeedingSpotController::class, 'adminPreviewQrSheet']);
         Route::get('/spots/{id}/qr-download', [AdminFeedingSpotController::class, 'downloadSpotQr']);
