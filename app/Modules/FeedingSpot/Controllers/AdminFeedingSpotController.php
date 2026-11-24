@@ -7,19 +7,21 @@ use App\Models\User;
 use App\Modules\FeedingSpot\Filament\Resources\FeedingReviewQueueResource;
 use App\Modules\FeedingSpot\Filament\Resources\FeedingSpotResource;
 use App\Modules\FeedingSpot\Models\FeedingActivity;
+use App\Modules\FeedingSpot\Models\FeedingReview;
+use App\Modules\FeedingSpot\Models\FeedingSetting;
 use App\Modules\FeedingSpot\Models\FeedingSpot;
 use App\Modules\FeedingSpot\Models\FeedingSpotHistory;
-use App\Modules\FeedingSpot\Models\FeedingReview;
 use App\Modules\FeedingSpot\Services\FeedingReviewService;
 use App\Modules\FeedingSpot\Services\FeedingSpotManagementService;
 use App\Modules\FeedingSpot\Services\FeedingSpotQrCodeService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdminFeedingSpotController extends Controller
 {
@@ -296,9 +298,158 @@ class AdminFeedingSpotController extends Controller
         $decision = $validated['decision'];
         $reason = $validated['notes'] ?? $validated['reason'] ?? null;
 
-        $payload = $this->reviewService->reviewActivity($activity, $reviewer, $decision, $reason);
+        try {
+            $payload = $this->reviewService->reviewActivity($activity, $reviewer, $decision, $reason);
+        } catch (HttpException $e) {
+            $status = $e->getStatusCode();
+            $code = match ($status) {
+                409 => 'CONFLICT',
+                403 => 'FORBIDDEN',
+                default => 'INVALID_ACTIVITY_STATUS',
+            };
+
+            return ApiResponse::error($e->getMessage(), $status, $code);
+        }
 
         return ApiResponse::success($payload, 'Keputusan review berhasil disimpan.');
+    }
+
+    /**
+     * GET /api/v1/admin/feeding/settings
+     * Ambil seluruh pengaturan feeding_settings (Bagian 8.4, MEOW-21).
+     * Permission: spot.manage
+     */
+    public function getSettings(): JsonResponse
+    {
+        return ApiResponse::success(
+            FeedingSetting::allEditable(),
+            'Pengaturan modul Feeding Spot berhasil diambil.'
+        );
+    }
+
+    /**
+     * PUT /api/v1/admin/feeding/settings
+     * Perbarui parameter feeding_settings tanpa rilis dan catat di audit_logs (Bagian 8.4, MEOW-21).
+     * Permission: spot.manage
+     */
+    public function updateSettings(Request $request): JsonResponse
+    {
+        $validated = $this->validateSettingsRequest($request);
+        $updated = FeedingSetting::updateMany($validated, $request->user());
+
+        return ApiResponse::success($updated, 'Pengaturan modul Feeding Spot berhasil diperbarui.');
+    }
+
+    /**
+     * GET /api/v1/admin/feeding/spot-histories
+     * Daftar read-only riwayat perubahan lokasi spot dengan filter (MEOW-29, MEOW-30).
+     * Permission: spot.manage
+     */
+    public function spotHistories(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'spot_id' => ['nullable', 'string', 'size:26'],
+            'action' => ['nullable', 'string', Rule::in([
+                'CREATED',
+                'UPDATED',
+                'DEACTIVATED',
+                'REACTIVATED',
+                'MARKED_UNAVAILABLE',
+                'QR_REGENERATED',
+            ])],
+            'actor_id' => ['nullable', 'string', 'size:26'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+        $paginator = $this->spotService
+            ->getSpotHistoryQuery($validated)
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(
+            fn (FeedingSpotHistory $history) => $this->spotService->formatSpotHistoryItem($history)
+        );
+
+        return ApiResponse::paginated($paginator, 'Riwayat perubahan lokasi spot berhasil diambil.');
+    }
+
+    /**
+     * GET /api/v1/admin/feeding/review-histories
+     * Daftar read-only riwayat keputusan review manual tanpa PII pengguna (MEOW-30).
+     * Permission: feeding.review
+     */
+    public function reviewHistories(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'decision' => ['nullable', 'string', Rule::in(['VERIFIED', 'REJECTED'])],
+            'spot_id' => ['nullable', 'string', 'size:26'],
+            'reviewer_id' => ['nullable', 'string', 'size:26'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $perPage = (int) ($validated['per_page'] ?? 20);
+        $paginator = $this->reviewService
+            ->getReviewHistoryQuery($validated)
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(
+            fn (FeedingReview $review) => $this->reviewService->formatReviewHistoryItem($review)
+        );
+
+        return ApiResponse::paginated($paginator, 'Riwayat keputusan review berhasil diambil.');
+    }
+
+    /**
+     * Validasi parameter feeding_settings (digunakan bersama API & Panel Admin Web).
+     *
+     * @return array<string, mixed>
+     */
+    private function validateSettingsRequest(Request $request): array
+    {
+        $rules = [];
+        foreach (FeedingSetting::EDITABLE_SPECS as $key => $spec) {
+            $rules[$key] = [
+                'sometimes',
+                'required',
+                $spec['type'] === 'integer' ? 'integer' : 'numeric',
+                "min:{$spec['min']}",
+                "max:{$spec['max']}",
+            ];
+        }
+
+        $validated = $request->validate($rules);
+
+        $effectiveMin = array_key_exists('min_points', $validated)
+            ? (int) $validated['min_points']
+            : (int) FeedingSetting::getFloat('min_points', 5.0);
+        $effectiveMax = array_key_exists('max_points', $validated)
+            ? (int) $validated['max_points']
+            : (int) FeedingSetting::getFloat('max_points', 20.0);
+
+        if ($effectiveMin > $effectiveMax) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'min_points' => ['Poin minimum tidak boleh lebih besar daripada poin maksimum.'],
+            ]);
+        }
+
+        $effectiveIntent = array_key_exists('intent_window_minutes', $validated)
+            ? (int) $validated['intent_window_minutes']
+            : (int) FeedingSetting::getFloat('intent_window_minutes', 15.0);
+        $effectiveFinalize = array_key_exists('finalize_window_minutes', $validated)
+            ? (int) $validated['finalize_window_minutes']
+            : (int) FeedingSetting::getFloat('finalize_window_minutes', 60.0);
+
+        if ($effectiveIntent > $effectiveFinalize) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'intent_window_minutes' => ['Batas waktu intent tidak boleh melebihi batas waktu finalisasi.'],
+            ]);
+        }
+
+        return $validated;
     }
 
     /**
@@ -573,24 +724,61 @@ class AdminFeedingSpotController extends Controller
         $canReview = $actor->can('feeding.review');
         $defaultTab = $canManageSpots ? 'spots' : 'reviews';
         $activeTab = $request->query('tab', $defaultTab);
-        if (($activeTab === 'spots' && !$canManageSpots) || ($activeTab === 'reviews' && !$canReview)) {
+        if (
+            ($activeTab === 'spots' && !$canManageSpots)
+            || ($activeTab === 'settings' && !$canManageSpots)
+            || ($activeTab === 'reviews' && !$canReview)
+        ) {
             $activeTab = $defaultTab;
         }
+
+        // MEOW-22: Antrean review diurutkan dari pengajuan terlama lebih dulu (oldest first)
         $pendingActivities = $canReview ? FeedingReviewQueueResource::getEloquentQuery($actor)
-            ->orderByDesc('finalized_at')
+            ->orderBy('finalized_at')
             ->get() : collect();
 
+        $spotHistoryFilters = [
+            'spot_id' => (string) $request->query('history_spot_id', ''),
+            'action' => (string) $request->query('history_action', ''),
+            'actor_id' => (string) $request->query('history_actor_id', ''),
+            'date_from' => (string) $request->query('history_date_from', ''),
+            'date_to' => (string) $request->query('history_date_to', ''),
+        ];
+        $reviewHistoryFilters = [
+            'decision' => (string) $request->query('review_decision', ''),
+            'spot_id' => (string) $request->query('review_spot_id', ''),
+            'reviewer_id' => (string) $request->query('review_reviewer_id', ''),
+            'date_from' => (string) $request->query('review_date_from', ''),
+            'date_to' => (string) $request->query('review_date_to', ''),
+        ];
+
         $reviewHistoryCount = $canReview ? FeedingReview::query()->count() : 0;
-        $reviewHistory = $canReview && $activeTab === 'audit' ? FeedingReview::with([
-            'activity.user:id,name,user_type',
-            'activity.spot:id,code,name',
-            'reviewer:id,name',
-        ])->latest()->limit(50)->get() : collect();
+        $reviewHistory = $canReview && $activeTab === 'audit'
+            ? $this->reviewService->getReviewHistoryQuery($reviewHistoryFilters)->limit(50)->get()
+            : collect();
         $spotHistoryCount = $canManageSpots ? FeedingSpotHistory::query()->count() : 0;
-        $spotHistory = $canManageSpots && $activeTab === 'audit' ? FeedingSpotHistory::with([
-            'spot:id,code,name',
-            'actor:id,name',
-        ])->latest()->limit(50)->get() : collect();
+        $spotHistory = $canManageSpots && $activeTab === 'audit'
+            ? $this->spotService->getSpotHistoryQuery($spotHistoryFilters)->limit(50)->get()
+            : collect();
+
+        $filterSpots = ($canManageSpots || $canReview)
+            ? FeedingSpot::query()->select(['id', 'code', 'name'])->orderBy('name')->get()
+            : collect();
+        $filterActors = $canManageSpots
+            ? User::query()
+                ->whereIn('id', FeedingSpotHistory::query()->whereNotNull('actor_id')->distinct()->pluck('actor_id'))
+                ->select(['id', 'name'])
+                ->orderBy('name')
+                ->get()
+            : collect();
+        $filterReviewers = $canReview
+            ? User::query()
+                ->whereIn('id', FeedingReview::query()->whereNotNull('reviewer_id')->distinct()->pluck('reviewer_id'))
+                ->select(['id', 'name'])
+                ->orderBy('name')
+                ->get()
+            : collect();
+        $settings = $canManageSpots ? FeedingSetting::allEditable() : [];
 
         $filters = [
             'status' => $request->query('status', ''),
@@ -626,6 +814,12 @@ class AdminFeedingSpotController extends Controller
             'allSpotsCount' => $allSpotsCount,
             'spotHistory' => $spotHistory,
             'spotHistoryCount' => $spotHistoryCount,
+            'spotHistoryFilters' => $spotHistoryFilters,
+            'reviewHistoryFilters' => $reviewHistoryFilters,
+            'filterSpots' => $filterSpots,
+            'filterActors' => $filterActors,
+            'filterReviewers' => $filterReviewers,
+            'settings' => $settings,
             'existingSpotCodes' => $existingSpotCodes,
             'availableCats' => $availableCats,
             'telkomBoundary' => FeedingSpotManagementService::TELKOM_BOUNDARY,
@@ -870,11 +1064,39 @@ class AdminFeedingSpotController extends Controller
             ->firstOrFail();
 
         abort_unless($request->user()->can('feeding.review'), 403);
+        if ($activity->status === 'UNDER_REVIEW' && $activity->user_id === $request->user()->id) {
+            abort(403, 'Reviewer tidak diperbolehkan memeriksa pengajuan miliknya sendiri.');
+        }
+
+        $isReadOnly = $activity->status !== 'UNDER_REVIEW' || $request->query('from') === 'audit';
+        $backUrl = $request->query('from') === 'audit'
+            ? '/admin/feeding?tab=audit'
+            : '/admin/feeding?tab=reviews';
+
         return view('feeding-spot::filament.review-evidence', [
             'activity' => $activity,
-            'backUrl' => '/admin/feeding?tab=reviews',
+            'isReadOnly' => $isReadOnly,
+            'backUrl' => $backUrl,
             'reviewActionUrl' => "/admin/feeding/activities/{$activity->id}/review",
         ]);
+    }
+
+    /**
+     * POST /admin/feeding/settings
+     * Simpan pembaruan feeding_settings dari Panel Admin browser (MEOW-21).
+     */
+    public function adminPreviewUpdateSettings(Request $request)
+    {
+        try {
+            $validated = $this->validateSettingsRequest($request);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $msg = collect($e->errors())->flatten()->implode(' ');
+            return redirect('/admin/feeding?tab=settings&error=' . urlencode($msg));
+        }
+
+        FeedingSetting::updateMany($validated, $request->user());
+
+        return redirect('/admin/feeding?tab=settings&notice=' . urlencode('Pengaturan feeding_settings berhasil disimpan dan langsung berlaku.'));
     }
 
     /**

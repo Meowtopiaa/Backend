@@ -966,6 +966,18 @@
                 </span>
                 <span class="nav-count">{{ $spotHistoryCount + $reviewHistoryCount }}</span>
             </button>
+
+            @if($canManageSpots)
+            <button type="button" class="nav-item {{ $activeTab === 'settings' ? 'active' : '' }}" id="navBtn-settings" onclick="switchTab('settings')" data-tooltip="Pengaturan Feeding Spot" aria-label="Pengaturan Feeding Spot">
+                <span class="nav-item-label">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                    </svg>
+                    <span class="nav-item-text">Pengaturan</span>
+                </span>
+            </button>
+            @endif
         </nav>
     </aside>
 
@@ -980,6 +992,8 @@
                     Antrean Review
                 @elseif($activeTab === 'audit')
                     Riwayat Spot &amp; Review
+                @elseif($activeTab === 'settings')
+                    Pengaturan Feeding Spot
                 @else
                     Lokasi Feeding Spot
                 @endif
@@ -1254,36 +1268,81 @@
             </section>
             @endif
 
-            <!-- ================= TAB 3: RIWAYAT SPOT & REVIEW ================= -->
+            <!-- ================= TAB 3: RIWAYAT SPOT & REVIEW (READ-ONLY, MEOW-30) ================= -->
+            @php
+                $spotActionLabels = [
+                    'CREATED' => 'Ditambah',
+                    'UPDATED' => 'Diubah',
+                    'DEACTIVATED' => 'Dinonaktifkan',
+                    'REACTIVATED' => 'Diaktifkan kembali',
+                    'MARKED_UNAVAILABLE' => 'Sementara tidak tersedia',
+                    'QR_REGENERATED' => 'QR diganti',
+                ];
+                $sFilters = $spotHistoryFilters ?? [];
+                $rFilters = $reviewHistoryFilters ?? [];
+            @endphp
             <section id="tabSection-audit" class="tab-section {{ $activeTab === 'audit' ? 'active' : '' }}">
                 @if($canManageSpots)
                 <div class="panel">
-                    <div class="toolbar"><strong style="font-size: 14px;">Riwayat Lokasi Spot</strong></div>
+                    <div class="toolbar" style="flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+                        <strong style="font-size: 14px;">Riwayat Lokasi Spot (Read-only)</strong>
+                        <form method="GET" action="/admin/feeding" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="hidden" name="tab" value="audit">
+                            <select name="history_spot_id" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Spot</option>
+                                @foreach(($filterSpots ?? []) as $fs)
+                                    <option value="{{ $fs->id }}" {{ ($sFilters['spot_id'] ?? '') === $fs->id ? 'selected' : '' }}>{{ $fs->code }} — {{ $fs->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="history_action" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Aksi</option>
+                                @foreach($spotActionLabels as $actKey => $actLabel)
+                                    <option value="{{ $actKey }}" {{ ($sFilters['action'] ?? '') === $actKey ? 'selected' : '' }}>{{ $actLabel }}</option>
+                                @endforeach
+                            </select>
+                            <select name="history_actor_id" class="select-control" style="width: auto; min-width: 140px;">
+                                <option value="">Semua Admin</option>
+                                @foreach(($filterActors ?? []) as $fa)
+                                    <option value="{{ $fa->id }}" {{ ($sFilters['actor_id'] ?? '') === $fa->id ? 'selected' : '' }}>{{ $fa->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="date" name="history_date_from" class="input-control" style="width: auto;" value="{{ $sFilters['date_from'] ?? '' }}" title="Dari Tanggal">
+                            <input type="date" name="history_date_to" class="input-control" style="width: auto;" value="{{ $sFilters['date_to'] ?? '' }}" title="Sampai Tanggal">
+                            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            <a href="/admin/feeding?tab=audit" class="btn btn-neutral btn-sm">Reset</a>
+                        </form>
+                    </div>
                     <div class="table-scroll">
                         <table class="data-table">
-                            <thead><tr><th>Waktu</th><th>Aktor</th><th>Lokasi</th><th>Perubahan</th><th>Alasan</th></tr></thead>
+                            <thead><tr><th>Waktu</th><th>Aksi</th><th>Spot</th><th>Admin Pelaku</th><th>Ringkasan Perubahan</th><th>Alasan</th></tr></thead>
                             <tbody>
                                 @forelse($spotHistory as $history)
                                     @php
                                         $old = $history->changes['old'] ?? [];
                                         $new = $history->changes['new'] ?? [];
                                         $changed = $history->changes['changed_fields'] ?? [];
+                                        $fieldLabels = ['name' => 'Nama', 'status' => 'Status', 'latitude' => 'Latitude', 'longitude' => 'Longitude', 'territory_id' => 'Zona', 'description' => 'Deskripsi', 'status_reason' => 'Alasan Status'];
                                     @endphp
                                     <tr>
                                         <td style="white-space: nowrap;">{{ $history->created_at?->format('d M Y, H:i') }}</td>
+                                        <td><span class="status-label status-inactive">{{ $spotActionLabels[$history->action] ?? $history->action }}</span></td>
+                                        <td><strong>{{ $history->spot?->code ?? ($new['code'] ?? $old['code'] ?? '-') }}</strong><br><span style="color: var(--text-secondary);">{{ $history->spot?->name ?? ($new['name'] ?? $old['name'] ?? '-') }}</span></td>
                                         <td>{{ $history->actor?->name ?? 'Sistem / Admin' }}</td>
-                                        <td><strong>{{ $history->spot?->code ?? ($new['code'] ?? $old['code'] ?? '-') }}</strong><br><span style="color: var(--text-secondary);">{{ $history->spot?->name ?? ($new['name'] ?? $old['name'] ?? 'Spot dihapus') }}</span></td>
                                         <td>
-                                            <span class="status-label status-inactive">{{ $actionLabels[$history->action] ?? $history->action }}</span>
-                                            @foreach($changed as $field)
-                                                @php $fieldLabels = ['name' => 'Nama', 'status' => 'Status', 'latitude' => 'Latitude', 'longitude' => 'Longitude', 'description' => 'Deskripsi', 'status_reason' => 'Alasan']; @endphp
-                                                @if(isset($fieldLabels[$field]))<br><strong>{{ $fieldLabels[$field] }}:</strong> {{ $old[$field] ?? '—' }} &rarr; {{ $new[$field] ?? '—' }}@endif
-                                            @endforeach
+                                            @if($history->action === 'QR_REGENERATED')
+                                                <span>Token QR spot diganti (token lama dicabut)</span>
+                                            @else
+                                                @foreach($changed as $field)
+                                                    @if(isset($fieldLabels[$field]))
+                                                        <div><strong>{{ $fieldLabels[$field] }}:</strong> {{ $old[$field] ?? '—' }} &rarr; {{ $new[$field] ?? '—' }}</div>
+                                                    @endif
+                                                @endforeach
+                                            @endif
                                         </td>
                                         <td>{{ $history->reason ?: '-' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada riwayat perubahan lokasi.</td></tr>
+                                    <tr><td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada riwayat perubahan lokasi.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -1293,22 +1352,93 @@
 
                 @if($canReview)
                 <div class="panel" style="margin-top: 20px;">
-                    <div class="toolbar"><strong style="font-size: 14px;">Riwayat Keputusan Review</strong></div>
+                    <div class="toolbar" style="flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+                        <strong style="font-size: 14px;">Riwayat Keputusan Review (Read-only)</strong>
+                        <form method="GET" action="/admin/feeding" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="hidden" name="tab" value="audit">
+                            <select name="review_decision" class="select-control" style="width: auto; min-width: 130px;">
+                                <option value="">Semua Keputusan</option>
+                                <option value="VERIFIED" {{ ($rFilters['decision'] ?? '') === 'VERIFIED' ? 'selected' : '' }}>Disetujui</option>
+                                <option value="REJECTED" {{ ($rFilters['decision'] ?? '') === 'REJECTED' ? 'selected' : '' }}>Ditolak</option>
+                            </select>
+                            <select name="review_spot_id" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Spot</option>
+                                @foreach(($filterSpots ?? []) as $fs)
+                                    <option value="{{ $fs->id }}" {{ ($rFilters['spot_id'] ?? '') === $fs->id ? 'selected' : '' }}>{{ $fs->code }} — {{ $fs->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="review_reviewer_id" class="select-control" style="width: auto; min-width: 140px;">
+                                <option value="">Semua Reviewer</option>
+                                @foreach(($filterReviewers ?? []) as $fr)
+                                    <option value="{{ $fr->id }}" {{ ($rFilters['reviewer_id'] ?? '') === $fr->id ? 'selected' : '' }}>{{ $fr->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="date" name="review_date_from" class="input-control" style="width: auto;" value="{{ $rFilters['date_from'] ?? '' }}" title="Dari Tanggal">
+                            <input type="date" name="review_date_to" class="input-control" style="width: auto;" value="{{ $rFilters['date_to'] ?? '' }}" title="Sampai Tanggal">
+                            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            <a href="/admin/feeding?tab=audit" class="btn btn-neutral btn-sm">Reset</a>
+                        </form>
+                    </div>
                     <div class="table-scroll">
                         <table class="data-table">
-                            <thead><tr><th>Waktu</th><th>Referensi</th><th>Relawan &amp; Spot</th><th>Keputusan</th><th>Reviewer</th><th>Alasan</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Waktu Keputusan</th>
+                                    <th>Spot &amp; Relawan</th>
+                                    <th>Waktu Kejadian</th>
+                                    <th>Keputusan</th>
+                                    <th>Flags &amp; Reward</th>
+                                    <th>Reviewer &amp; Alasan</th>
+                                    <th>Bukti</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 @forelse($reviewHistory as $review)
                                     <tr>
-                                        <td style="white-space: nowrap;">{{ $review->created_at?->format('d M Y, H:i') }}</td>
-                                        <td><span class="spot-code">{{ $review->activity?->feeding_record_ref ?? '-' }}</span></td>
-                                        <td><strong>{{ $review->activity?->user?->name ?? 'Relawan' }}</strong><br><span style="color: var(--text-secondary);">{{ $review->activity?->spot?->name ?? '-' }}</span></td>
-                                        <td>@if($review->decision === 'REJECTED')<span class="status-label status-rejected">Ditolak</span>@else<span class="status-label status-active">Disetujui</span>@endif</td>
-                                        <td>{{ $review->reviewer?->name ?? '-' }}</td>
-                                        <td>{{ $review->reason ?: '-' }}</td>
+                                        <td style="white-space: nowrap;">
+                                            {{ $review->created_at?->format('d M Y, H:i') }}
+                                            <div class="spot-code" style="margin-top: 4px;">{{ $review->activity?->feeding_record_ref ?? '-' }}</div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ $review->activity?->spot?->name ?? '-' }}</strong>
+                                            <br><span style="color: var(--text-secondary);">{{ $review->activity?->user?->name ?? 'Relawan' }}</span>
+                                        </td>
+                                        <td style="white-space: nowrap; color: var(--text-secondary);">
+                                            {{ ($review->activity?->finalized_at ?? $review->activity?->scanned_at)?->format('d M Y, H:i') ?? '-' }}
+                                        </td>
+                                        <td>
+                                            @if($review->decision === 'REJECTED')
+                                                <span class="status-label status-rejected">Ditolak</span>
+                                            @else
+                                                <span class="status-label status-active">Disetujui</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div style="font-size: 12px; font-weight: 600;">Reward: {{ $review->activity?->reward_status ?? '-' }}</div>
+                                            @if(!empty($review->activity?->flags))
+                                                <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                                    @foreach($review->activity->flags as $fl)
+                                                        <span class="status-label status-temp" style="font-size: 11px;">{{ $fl }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span style="color: var(--text-muted); font-size: 12px;">Tanpa flag</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <strong>{{ $review->reviewer?->name ?? '-' }}</strong>
+                                            <div style="color: var(--text-secondary); margin-top: 2px;">{{ $review->reason ?: '-' }}</div>
+                                        </td>
+                                        <td>
+                                            @if($review->activity_id)
+                                                <a href="/admin/feeding/reviews/{{ $review->activity_id }}?from=audit" class="btn btn-neutral btn-sm">Lihat Detail</a>
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada keputusan review.</td></tr>
+                                    <tr><td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada keputusan review.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -1316,6 +1446,45 @@
                 </div>
                 @endif
             </section>
+
+            <!-- ================= TAB 4: PENGATURAN FEEDING_SETTINGS (MEOW-21) ================= -->
+            @if($canManageSpots)
+            <section id="tabSection-settings" class="tab-section {{ $activeTab === 'settings' ? 'active' : '' }}">
+                <div class="panel">
+                    <div class="toolbar">
+                        <div>
+                            <strong style="font-size: 14px;">Pengaturan Parameter Feeding Spot (feeding_settings)</strong>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Perubahan tersimpan ke database, tercatat di audit log, dan langsung berlaku tanpa rilis aplikasi.</div>
+                        </div>
+                    </div>
+                    <form method="POST" action="/admin/feeding/settings" style="padding: 20px;">
+                        @csrf
+                        <div class="form-grid">
+                            @foreach(($settings ?? []) as $settingKey => $meta)
+                                <div class="form-group">
+                                    <label class="form-label" for="setting_{{ $settingKey }}">{{ $meta['label'] }}</label>
+                                    <input
+                                        type="number"
+                                        id="setting_{{ $settingKey }}"
+                                        name="{{ $settingKey }}"
+                                        class="input-control"
+                                        value="{{ $meta['value'] }}"
+                                        min="{{ $meta['min'] }}"
+                                        max="{{ $meta['max'] }}"
+                                        step="{{ $meta['step'] }}"
+                                        required
+                                    >
+                                    <span style="font-size: 11.5px; color: var(--text-muted);">{{ $meta['description'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+            @endif
         </main>
     </div>
 
@@ -1621,11 +1790,12 @@
         const TAB_TITLES = {
             spots: 'Lokasi Feeding Spot',
             reviews: 'Antrean Review',
-            audit: 'Riwayat Spot & Review'
+            audit: 'Riwayat Spot & Review',
+            settings: 'Pengaturan Feeding Spot'
         };
 
         function switchTab(tabName) {
-            ['spots', 'reviews', 'audit'].forEach((t) => {
+            ['spots', 'reviews', 'audit', 'settings'].forEach((t) => {
                 const sec = document.getElementById('tabSection-' + t);
                 const btn = document.getElementById('navBtn-' + t);
                 if (sec) sec.classList.toggle('active', t === tabName);
