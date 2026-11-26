@@ -27,6 +27,7 @@ class Cat extends Model
     protected $fillable = [
         'unique_code',
         'name',
+        'is_name_locked',
         'gender',             // MALE, FEMALE, UNKNOWN
         'color_pattern',
         'primary_color',
@@ -37,6 +38,7 @@ class Cat extends Model
         'vaccinated_at',
         'vaccination_notes',
         'description',
+        'quote',
         'temperament',
         'special_needs',
         'traits',
@@ -52,6 +54,7 @@ class Cat extends Model
 
     protected $casts = [
         'is_sterilized' => 'boolean',
+        'is_name_locked' => 'boolean',
         'is_vaccinated' => 'boolean',
         'vaccinated_at' => 'date',
         'traits' => 'array',

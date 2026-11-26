@@ -2,46 +2,41 @@
 
 namespace App\Modules\CatHunter\Models;
 
+use App\Models\User;
+use App\Modules\Cat\Models\Cat;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Modules\Cat\Models\Cat;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Log histori pertemuan (satu baris per sesi mengelus yang selesai).
+ * Dipakai sebagai pemantauan keaktifan populasi kucing.
+ */
 class CatEncounter extends Model
 {
     use HasFactory, HasUlids;
 
+    protected $table = 'cat_hunter_encounters';
     protected $keyType = 'string';
     public $incrementing = false;
 
     protected $fillable = [
         'user_id',
         'cat_id',
-        'mood',               // CALM, PLAYFUL, SHY, AGGRESSIVE
-        'trust',
-        'turn_count',
-        'status',             // ACTIVE, TAMED, FAILED, ESCAPED, EXPIRED
-        'started_at',
-        'ended_at',
-        'location_lat',
-        'location_lng',
-        'points_awarded',
+        'scanned_at',
     ];
 
     protected $casts = [
-        'started_at' => 'datetime',
-        'ended_at' => 'datetime',
-        'location_lat' => 'double',
-        'location_lng' => 'double',
+        'scanned_at' => 'datetime',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function cat()
+    public function cat(): BelongsTo
     {
         return $this->belongsTo(Cat::class);
     }

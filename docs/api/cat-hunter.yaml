@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Meowtopia CatHunter (TelCat World) API
+  version: 1.0.0
+  description: |
+    Kontrak resmi modul game **CatHunter / TelCat World** (`/api/v1/cat-hunter`), dirancang agar cocok langsung dengan
+    frontend `cat_hunter` (`CatModel`, `TerritoryModel`, layar Cat-Dex, Peta Zona, dan Profil).
+
+    **Aturan bisnis**
+    - **Tanpa poin:** modul ini tidak memanggil `PointService` (poin khusus FeedingSpot).
+    - **Tanpa kuis observasi, input kondisi fisik/sakit/mati, maupun suvenir.** Data fisik & medis kucing dibaca dari tabel `cats` (read-only).
+    - **Daily cooldown 1x/hari:** satu user hanya bisa menyelesaikan satu sesi dengan kucing yang sama per hari kalender zona waktu `Asia/Jakarta`.
+    - **Encounter log:** setiap sesi (2 fase mengelus selesai) menambah `encounter_count` pada `cat_hunter_user_cat_dex` dan menulis baris di `cat_hunter_encounters`.
+    - **Hak nama permanen:** setelah `encounter_count >= 5` dan `is_name_locked = false`, user boleh memberi nama baru (2–20 karakter, unik case-insensitive di seluruh `cats`); nama lalu terkunci permanen.
+    - **4 zona kampus:** `TULT & Asrama` (`TULT_ASRAMA`), `GKU`, `Cacuk` (`CACUK`), `Fakultas Depan` (`FAKULTAS_DEPAN`).
+    - **Tanpa GPS:** tidak ada koordinat yang dikirim atau disimpan; verifikasi kehadiran hanya lewat QR kalung / kode manual (`/scan/resolve`).
+    - **Privasi:** token QR mentah tidak pernah dikembalikan. `qr_hash` hanya `unique_code` kalung (kode cadangan yang tercetak).
+    - Seluruh waktu dikembalikan sebagai ISO-8601 dengan offset `+07:00`.
+
+    **Alur klien**
+    1. `GET /cat-hunter/cats` & `GET /cat-hunter/zones` untuk Cat-Dex dan peta.
+    2. Pindai QR kalung → `POST /cat-hunter/cats/{cat}/scan-check` (opsional kirim `code` agar divalidasi lewat `ScanResolver`).
+    3. Setelah 2 fase mengelus → `POST /cat-hunter/cats/{cat}/encounters`.
+    4. Bila `can_rename = true` → `PATCH /cat-hunter/cats/{cat}/name`.
+    5. `GET /cat-hunter/profile` & `PATCH /cat-hunter/profile/avatar` untuk tab Profil.
+
+    **Idempotensi:** endpoint mutasi (`POST encounters`, `PATCH name`, `PATCH profile/avatar`) wajib header `Idempotency-Key`.
+    `scan-check` hanya membaca data sehingga tidak memerlukannya. `{cat}` menerima ULID kucing atau `unique_code` kalung.
+
+servers:
+  - url: /api/v1
+    description: Laravel REST API Gateway v1
+
+components:
+  securitySchemes:
+    sanctumAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Kunci unik klien untuk mencegah duplikasi operasi tulis.
+    CatRef:
+      name: cat
+      in: path
+      required: true
+      schema: { type: string }
+      description: ULID kucing (26 karakter) atau `unique_code` kalung (case-insensitive).
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        code: { type: string, example: DAILY_COOLDOWN }
+        message: { type: string }
+        errors: { type: object, nullable: true, additionalProperties: true }
+        request_id: { type: string }
+    CatHunterCat:
+      type: object
+      description: Kucing beserta progres user. Cocok dengan `CatModel` frontend.
+      properties:
+        id: { type: string, description: ULID, example: 01JCAT00000000000000000001 }
+        unique_code: { type: string, example: TELCAT-TULT-001 }
+        qr_hash: { type: string, description: Alias `unique_code` (kode cadangan kalung), example: TELCAT-TULT-001 }
+        name: { type: string, example: Si Oyen }
+        variant: { type: string, enum: [oren, putih, hitam], description: Diturunkan dari `primary_color`/`color_pattern` }
+        zone: { type: string, nullable: true, example: TULT & Asrama }
+        zone_code: { type: string, nullable: true, enum: [TULT_ASRAMA, GKU, CACUK, FAKULTAS_DEPAN] }
+        location_detail: { type: string, nullable: true, description: Dari `cats.description` }
+        health_status: { type: string, enum: [HEALTHY, SICK, INJURED, UNDER_CARE], description: Read-only dari `cats` }
+        health_label: { type: string, example: Sehat & Steril (Data Pengelola) }
+        is_sterilized: { type: boolean, nullable: true }
+        is_vaccinated: { type: boolean, nullable: true }
+        personality: { type: string, nullable: true, description: Dari `cats.temperament` }
+        special_needs: { type: string, nullable: true }
+        gender: { type: string, enum: [MALE, FEMALE, UNKNOWN] }
+        age_group: { type: string, enum: [KITTEN, ADULT, SENIOR, UNKNOWN] }
+        primary_color: { type: string, nullable: true }
+        fur_pattern: { type: string, nullable: true }
+        quote: { type: string, example: Kalau bawa ikan tongkol, kita langsung bestie! }
+        encounter_count: { type: integer, example: 3 }
+        last_scanned_at: { type: string, format: date-time, nullable: true, example: '2026-03-10T09:00:00+07:00' }
+        is_collected: { type: boolean, description: true bila encounter_count > 0 }
+        is_currently_in_cafe: { type: boolean, description: Sama dengan is_collected }
+        is_favorite_avatar: { type: boolean }
+        can_scan_today: { type: boolean, description: false bila sudah disapa hari ini (WIB) atau kucing tidak bisa disapa }
+        next_available_at: { type: string, format: date-time, nullable: true, description: 00:00 WIB berikutnya saat cooldown aktif }
+        is_name_locked: { type: boolean }
+        can_rename: { type: boolean, description: encounter_count >= 5 dan nama belum terkunci }
+        rename_required_encounters: { type: integer, example: 5 }
+        cafe_pose: { type: string, enum: [pillow, box, tree, carpet, stool] }
+    Zone:
+      type: object
+      description: Cocok dengan `TerritoryModel` frontend (tanpa koordinat).
+      properties:
+        id: { type: string, nullable: true, description: ULID territory bila ada }
+        code: { type: string, enum: [TULT_ASRAMA, GKU, CACUK, FAKULTAS_DEPAN] }
+        name: { type: string, example: TULT & Asrama }
+        short_label: { type: string }
+        description: { type: string }
+        landmark: { type: string }
+        active_cats_count: { type: integer }
+        collected_cats_count: { type: integer }
+        has_unvisited_cat_today: { type: boolean, description: Masih ada kucing di zona yang belum disapa hari ini }
+        resident_cat_ids: { type: array, items: { type: string } }
+    Medal:
+      type: object
+      properties:
+        id: { type: string, example: medal_bestie }
+        title: { type: string }
+        description: { type: string }
+        current: { type: integer }
+        target: { type: integer }
+        is_unlocked: { type: boolean }
+        progress_label: { type: string, example: 2/3 }
+    Profile:
+      type: object
+      properties:
+        total_cats_collected: { type: integer }
+        total_catalog_cats: { type: integer }
+        total_encounters: { type: integer }
+        title: { type: string, enum: [Pendatang Baru, Sahabat Kucing Kampus, Pawang Kucing Tel-U], description: '>= 15 pertemuan Pawang; >= 5 Sahabat; selain itu Pendatang Baru' }
+        best_buddy: { allOf: [{ $ref: '#/components/schemas/CatHunterCat' }], nullable: true }
+        medals: { type: array, items: { $ref: '#/components/schemas/Medal' } }
+        favorite_avatar: { allOf: [{ $ref: '#/components/schemas/CatHunterCat' }], nullable: true }
+    EncounterResult:
+      type: object
+      properties:
+        cat_id: { type: string }
+        encounter_count: { type: integer }
+        is_first_encounter: { type: boolean }
+        last_scanned_at: { type: string, format: date-time }
+        can_rename: { type: boolean }
+        rename_required_encounters: { type: integer, example: 5 }
+        is_name_locked: { type: boolean }
+        cat: { $ref: '#/components/schemas/CatHunterCat' }
+  responses:
+    Unauthorized: { description: Belum login, content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    NotFound: { description: Kucing tidak ditemukan (code NOT_FOUND), content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+    ValidationError: { description: Validasi gagal (code VALIDATION_ERROR), content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } } }
+
+paths:
+  /cat-hunter/cats:
+    get:
+      summary: Katalog kucing kampus (ON_CAMPUS) beserta progres user
+      security: [{ sanctumAuth: [] }]
+      responses:
+        '200':
+          description: Daftar kucing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/CatHunterCat' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /cat-hunter/cats/{cat}/scan-check:
+    post:
+      summary: Cek QR kalung (opsional) dan status cooldown harian sebelum mengelus
+      description: |
+        Bila `code` dikirim, divalidasi lewat `ScanResolver` (format `MTP1.C.<token>` atau kode manual) dan wajib milik kucing pada URL.
+        Hanya membaca data, tanpa Idempotency-Key.
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CatRef'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: { type: string, maxLength: 255, example: MTP1.C.abcdef123456 }
+      responses:
+        '200':
+          description: Status kucing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    type: object
+                    properties:
+                      cat: { $ref: '#/components/schemas/CatHunterCat' }
+                      can_scan_today: { type: boolean }
+                      is_available: { type: boolean, description: false bila tidak ON_CAMPUS atau SICK/INJURED }
+                      last_scanned_at: { type: string, format: date-time, nullable: true }
+                      next_available_at: { type: string, format: date-time, nullable: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: Kucing atau QR tidak ditemukan (NOT_FOUND / QR_INVALID) }
+        '422': { description: QR milik kucing lain (QR_MISMATCH) atau validasi gagal }
+
+  /cat-hunter/cats/{cat}/encounters:
+    post:
+      summary: Selesaikan sesi pertemuan (2 fase mengelus selesai)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CatRef'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phases_completed]
+              properties:
+                phases_completed: { type: integer, enum: [2] }
+      responses:
+        '201':
+          description: Encounter tersimpan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/EncounterResult' }
+        '400': { description: Idempotency-Key tidak ada (VALIDATION_ERROR) }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Sudah menyapa kucing ini hari ini (code DAILY_COOLDOWN; errors.next_available_at) }
+        '422': { description: Validasi gagal atau kucing tidak bisa disapa (CAT_NOT_AVAILABLE) }
+
+  /cat-hunter/cats/{cat}/name:
+    patch:
+      summary: Beri nama permanen unik (setelah 5x pertemuan)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/CatRef'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, minLength: 2, maxLength: 20, example: Si Budi, description: Huruf, angka, spasi, titik, apostrof, atau tanda hubung }
+      responses:
+        '200':
+          description: Nama tersimpan dan terkunci permanen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/CatHunterCat' }
+        '400': { description: Idempotency-Key tidak ada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { description: Belum 5x pertemuan (RENAME_NOT_ALLOWED) }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Nama sudah terkunci (NAME_ALREADY_LOCKED) }
+        '422': { description: Validasi gagal atau nama sudah dipakai kucing lain (NAME_TAKEN; case-insensitive) }
+
+  /cat-hunter/zones:
+    get:
+      summary: Ringkasan 4 zona kampus beserta indikator kucing yang belum disapa hari ini
+      security: [{ sanctumAuth: [] }]
+      responses:
+        '200':
+          description: Tepat 4 zona (TULT & Asrama, GKU, Cacuk, Fakultas Depan)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Zone' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /cat-hunter/profile:
+    get:
+      summary: Ringkasan profil pemain (koleksi, pertemuan, gelar, Best Buddy, medali, avatar)
+      security: [{ sanctumAuth: [] }]
+      responses:
+        '200':
+          description: Profil pemain
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /cat-hunter/profile/avatar:
+    patch:
+      summary: Pilih kucing koleksi sebagai avatar favorit (satu per user)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cat_id]
+              properties:
+                cat_id: { type: string, description: ULID kucing (bukan integer) yang sudah dikoleksi }
+      responses:
+        '200':
+          description: Avatar tersimpan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/CatHunterCat' }
+        '400': { description: Idempotency-Key tidak ada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422': { description: Validasi gagal atau kucing belum dikoleksi (CAT_NOT_COLLECTED) }
