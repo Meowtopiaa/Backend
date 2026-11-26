@@ -54,9 +54,9 @@
             padding: 0;
         }
 
-        body {
+            body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-page);
+            background: #EEF3F9;
             color: var(--text-primary);
             font-size: 14px;
             line-height: 1.5;
@@ -65,48 +65,49 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ================= NAVY COLLAPSIBLE SIDEBAR & EDGE TOGGLE ================= */
+        /* ================= FLOATING ROUNDED BENTO SIDEBAR (SYNCED WITH /admin/cats) ================= */
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--sidebar-navy);
+            background: linear-gradient(180deg, #132C52 0%, var(--sidebar-navy) 100%);
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            top: 14px;
+            left: 14px;
+            bottom: 14px;
             z-index: 60;
-            border-right: 1px solid var(--sidebar-navy-border);
+            border-radius: 22px;
+            box-shadow: 0 14px 36px rgba(11, 25, 44, 0.18);
             overflow: visible;
             transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1), transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-edge-toggle {
             position: fixed;
-            top: 21px;
-            left: var(--sidebar-w);
+            top: 34px;
+            left: calc(var(--sidebar-w) + 3px);
             z-index: 65;
-            width: 22px;
-            height: 34px;
-            background: var(--sidebar-navy);
-            color: #FFFFFF;
-            border: 1px solid var(--sidebar-navy-border);
-            border-left: none;
-            border-radius: 0 6px 6px 0;
+            width: 24px;
+            height: 24px;
+            background: #FFFFFF;
+            color: var(--sidebar-navy);
+            border: 1px solid var(--border);
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
             transition: left 0.26s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease;
             user-select: none;
         }
 
         .sidebar-edge-toggle:hover {
-            background: var(--sidebar-navy-hover);
+            background: #F8FAFC;
         }
 
         .sidebar-brand {
@@ -211,17 +212,18 @@
         }
 
         .nav-item.active {
-            background: var(--primary);
-            color: #FFFFFF;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+            background: #FFFFFF;
+            color: #0F2442;
+            font-weight: 700;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
         .nav-count {
-            font-size: 11.5px;
-            font-weight: 600;
-            padding: 1px 7px;
-            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
             background: rgba(255, 255, 255, 0.14);
             color: #FFFFFF;
             white-space: nowrap;
@@ -233,13 +235,14 @@
         }
 
         .nav-item.active .nav-count {
-            background: rgba(0, 0, 0, 0.22);
+            background: #FFF7ED;
+            color: var(--primary);
         }
 
         /* ================= MAIN WRAPPER & TOPBAR ================= */
         .main-wrapper {
             flex: 1;
-            margin-left: var(--sidebar-w);
+            margin-left: calc(var(--sidebar-w) + 28px);
             min-width: 0;
             display: flex;
             flex-direction: column;
@@ -252,11 +255,11 @@
             }
 
             body.sidebar-collapsed .sidebar-edge-toggle {
-                left: var(--sidebar-collapsed-w);
+                left: calc(var(--sidebar-collapsed-w) + 3px);
             }
 
             body.sidebar-collapsed .main-wrapper {
-                margin-left: var(--sidebar-collapsed-w);
+                margin-left: calc(var(--sidebar-collapsed-w) + 28px);
             }
 
             body.sidebar-collapsed .sidebar-brand {
@@ -471,54 +474,127 @@
             padding: 0 4px;
         }
 
-        /* ================= CLEAN SUMMARY METRICS ================= */
+        /* ================= MODERN BENTO SUMMARY METRICS (SHARED WITH /admin/cats) ================= */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 20px;
         }
 
         .stat-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #FFFFFF 0%, #FFF7ED 100%);
+            border: 1px solid #FED7AA;
+            border-radius: 18px;
+            padding: 16px 18px 18px;
             text-decoration: none;
             color: inherit;
             display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            transition: border-color 0.15s ease;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(15, 36, 66, 0.05);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            --card-accent: #EA580C;
+            --chip-bg: #FFEDD5;
+        }
+
+        .stat-item.stat-card-green {
+            background: linear-gradient(145deg, #FFFFFF 0%, #E8FBF1 100%);
+            border-color: #A7F3D0;
+            --card-accent: #15803D;
+            --chip-bg: #DCFCE7;
+        }
+
+        .stat-item.stat-card-amber {
+            background: linear-gradient(145deg, #FFFFFF 0%, #FFFBEB 100%);
+            border-color: #FDE68A;
+            --card-accent: #B45309;
+            --chip-bg: #FEF3C7;
+        }
+
+        .stat-item.stat-card-slate {
+            background: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%);
+            border-color: #CBD5E1;
+            --card-accent: #475569;
+            --chip-bg: #E2E8F0;
         }
 
         .stat-item:hover {
-            border-color: var(--border-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(15, 36, 66, 0.09);
         }
 
         .stat-item.active {
-            border-color: var(--primary);
-            background: #FFFBF7;
+            box-shadow: 0 0 0 2px var(--primary), 0 8px 20px rgba(234, 88, 12, 0.12);
+        }
+
+        .stat-icon-chip {
+            position: relative;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--chip-bg);
+            color: var(--card-accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon-chip svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .stat-body {
+            position: relative;
+            z-index: 2;
         }
 
         .stat-label {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12.5px;
+            font-weight: 600;
             color: var(--text-secondary);
+            margin-top: 3px;
+            display: block;
         }
 
         .stat-value {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
             color: var(--text-primary);
+            line-height: 1.1;
+            display: block;
+        }
+
+        .stat-watermark {
+            position: absolute;
+            right: -10px;
+            bottom: -14px;
+            width: 78px;
+            height: 78px;
+            color: var(--card-accent);
+            opacity: 0.32;
+            pointer-events: none;
+            transform: rotate(-16deg);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .stat-item:hover .stat-watermark {
+            opacity: 0.45;
+            transform: rotate(-10deg) scale(1.05);
         }
 
         /* ================= MAIN PANEL & TOOLBAR ================= */
         .panel {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 18px;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(15, 36, 66, 0.05);
         }
 
         .toolbar {
@@ -540,14 +616,25 @@
         }
 
         .input-control, .select-control {
-            padding: 7px 11px;
+            padding: 8px 12px;
             border: 1px solid var(--border-strong);
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 13px;
             font-family: inherit;
             color: var(--text-primary);
             background: var(--surface);
             outline: none;
+        }
+
+        .select-control {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 15px 15px;
+            cursor: pointer;
         }
 
         .input-control:focus, .select-control:focus {
@@ -919,15 +1006,30 @@
 
     <!-- DARK NAVY COLLAPSIBLE SIDEBAR (ICON-ONLY WHEN COLLAPSED) -->
     <aside class="sidebar" id="appSidebar">
-        <div class="sidebar-brand" data-tooltip="MEOWTOPIA — Feeding Spot">
+        <div class="sidebar-brand" data-tooltip="MEOWTOPIA — Admin Portal">
             <img src="/api/v1/feeding/assets/logo.jpg" alt="Meowtopia" class="sidebar-logo">
             <div class="sidebar-brand-text">
                 <div class="sidebar-brand-title">MEOWTOPIA</div>
-                <div class="sidebar-brand-sub">Feeding Spot</div>
+                <div class="sidebar-brand-sub">Admin Portal</div>
             </div>
         </div>
 
         <nav class="sidebar-nav">
+            @if(auth()->user()?->can('cat.edit') || auth()->user()?->can('cat.curate'))
+            <a href="/admin/cats" class="nav-item" style="text-decoration: none;" data-tooltip="Katalog Kucing" aria-label="Katalog Kucing">
+                <span class="nav-item-label">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="4" r="2"/>
+                        <circle cx="18" cy="8" r="2"/>
+                        <circle cx="20" cy="16" r="2"/>
+                        <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
+                    </svg>
+                    <span class="nav-item-text">Katalog Kucing</span>
+                </span>
+                <span class="nav-count">{{ \App\Modules\Cat\Models\Cat::count() }}</span>
+            </a>
+            @endif
+
             @if($canManageSpots)
             <button type="button" class="nav-item {{ $activeTab === 'spots' ? 'active' : '' }}" id="navBtn-spots" onclick="switchTab('spots')" data-tooltip="Lokasi Feeding Spot ({{ $allSpotsCount }})" aria-label="Lokasi Feeding Spot">
                 <span class="nav-item-label">
@@ -966,6 +1068,18 @@
                 </span>
                 <span class="nav-count">{{ $spotHistoryCount + $reviewHistoryCount }}</span>
             </button>
+
+            @if($canManageSpots)
+            <button type="button" class="nav-item {{ $activeTab === 'settings' ? 'active' : '' }}" id="navBtn-settings" onclick="switchTab('settings')" data-tooltip="Pengaturan Feeding Spot" aria-label="Pengaturan Feeding Spot">
+                <span class="nav-item-label">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+                    </svg>
+                    <span class="nav-item-text">Pengaturan</span>
+                </span>
+            </button>
+            @endif
         </nav>
     </aside>
 
@@ -980,6 +1094,8 @@
                     Antrean Review
                 @elseif($activeTab === 'audit')
                     Riwayat Spot &amp; Review
+                @elseif($activeTab === 'settings')
+                    Pengaturan Feeding Spot
                 @else
                     Lokasi Feeding Spot
                 @endif
@@ -1025,20 +1141,52 @@
             <section id="tabSection-spots" class="tab-section {{ $activeTab === 'spots' ? 'active' : '' }}">
                 <div class="stats-grid">
                     <a href="/admin/feeding?tab=spots" class="stat-item {{ empty($filters['status']) ? 'active' : '' }}">
-                        <span class="stat-label">Total Spot</span>
-                        <span class="stat-value">{{ $allSpotsCount }}</span>
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $allSpotsCount }}</span>
+                            <span class="stat-label">Total Spot</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=ACTIVE" class="stat-item {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'active' : '' }}">
-                        <span class="stat-label">Aktif</span>
-                        <span class="stat-value">{{ $activeCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=ACTIVE" class="stat-item stat-card-green {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $activeCount }}</span>
+                            <span class="stat-label">Aktif</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=TEMPORARILY_UNAVAILABLE" class="stat-item {{ ($filters['status'] ?? '') === 'TEMPORARILY_UNAVAILABLE' ? 'active' : '' }}">
-                        <span class="stat-label">Sementara Tutup</span>
-                        <span class="stat-value">{{ $tempCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=TEMPORARILY_UNAVAILABLE" class="stat-item stat-card-amber {{ ($filters['status'] ?? '') === 'TEMPORARILY_UNAVAILABLE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $tempCount }}</span>
+                            <span class="stat-label">Sementara Tutup</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=INACTIVE" class="stat-item {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'active' : '' }}">
-                        <span class="stat-label">Nonaktif</span>
-                        <span class="stat-value">{{ $inactiveCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=INACTIVE" class="stat-item stat-card-slate {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $inactiveCount }}</span>
+                            <span class="stat-label">Nonaktif</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
                 </div>
 
@@ -1254,36 +1402,81 @@
             </section>
             @endif
 
-            <!-- ================= TAB 3: RIWAYAT SPOT & REVIEW ================= -->
+            <!-- ================= TAB 3: RIWAYAT SPOT & REVIEW (READ-ONLY, MEOW-30) ================= -->
+            @php
+                $spotActionLabels = [
+                    'CREATED' => 'Ditambah',
+                    'UPDATED' => 'Diubah',
+                    'DEACTIVATED' => 'Dinonaktifkan',
+                    'REACTIVATED' => 'Diaktifkan kembali',
+                    'MARKED_UNAVAILABLE' => 'Sementara tidak tersedia',
+                    'QR_REGENERATED' => 'QR diganti',
+                ];
+                $sFilters = $spotHistoryFilters ?? [];
+                $rFilters = $reviewHistoryFilters ?? [];
+            @endphp
             <section id="tabSection-audit" class="tab-section {{ $activeTab === 'audit' ? 'active' : '' }}">
                 @if($canManageSpots)
                 <div class="panel">
-                    <div class="toolbar"><strong style="font-size: 14px;">Riwayat Lokasi Spot</strong></div>
+                    <div class="toolbar" style="flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+                        <strong style="font-size: 14px;">Riwayat Lokasi Spot (Read-only)</strong>
+                        <form method="GET" action="/admin/feeding" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="hidden" name="tab" value="audit">
+                            <select name="history_spot_id" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Spot</option>
+                                @foreach(($filterSpots ?? []) as $fs)
+                                    <option value="{{ $fs->id }}" {{ ($sFilters['spot_id'] ?? '') === $fs->id ? 'selected' : '' }}>{{ $fs->code }} — {{ $fs->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="history_action" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Aksi</option>
+                                @foreach($spotActionLabels as $actKey => $actLabel)
+                                    <option value="{{ $actKey }}" {{ ($sFilters['action'] ?? '') === $actKey ? 'selected' : '' }}>{{ $actLabel }}</option>
+                                @endforeach
+                            </select>
+                            <select name="history_actor_id" class="select-control" style="width: auto; min-width: 140px;">
+                                <option value="">Semua Admin</option>
+                                @foreach(($filterActors ?? []) as $fa)
+                                    <option value="{{ $fa->id }}" {{ ($sFilters['actor_id'] ?? '') === $fa->id ? 'selected' : '' }}>{{ $fa->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="date" name="history_date_from" class="input-control" style="width: auto;" value="{{ $sFilters['date_from'] ?? '' }}" title="Dari Tanggal">
+                            <input type="date" name="history_date_to" class="input-control" style="width: auto;" value="{{ $sFilters['date_to'] ?? '' }}" title="Sampai Tanggal">
+                            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            <a href="/admin/feeding?tab=audit" class="btn btn-neutral btn-sm">Reset</a>
+                        </form>
+                    </div>
                     <div class="table-scroll">
                         <table class="data-table">
-                            <thead><tr><th>Waktu</th><th>Aktor</th><th>Lokasi</th><th>Perubahan</th><th>Alasan</th></tr></thead>
+                            <thead><tr><th>Waktu</th><th>Aksi</th><th>Spot</th><th>Admin Pelaku</th><th>Ringkasan Perubahan</th><th>Alasan</th></tr></thead>
                             <tbody>
                                 @forelse($spotHistory as $history)
                                     @php
                                         $old = $history->changes['old'] ?? [];
                                         $new = $history->changes['new'] ?? [];
                                         $changed = $history->changes['changed_fields'] ?? [];
+                                        $fieldLabels = ['name' => 'Nama', 'status' => 'Status', 'latitude' => 'Latitude', 'longitude' => 'Longitude', 'territory_id' => 'Zona', 'description' => 'Deskripsi', 'status_reason' => 'Alasan Status'];
                                     @endphp
                                     <tr>
                                         <td style="white-space: nowrap;">{{ $history->created_at?->format('d M Y, H:i') }}</td>
+                                        <td><span class="status-label status-inactive">{{ $spotActionLabels[$history->action] ?? $history->action }}</span></td>
+                                        <td><strong>{{ $history->spot?->code ?? ($new['code'] ?? $old['code'] ?? '-') }}</strong><br><span style="color: var(--text-secondary);">{{ $history->spot?->name ?? ($new['name'] ?? $old['name'] ?? '-') }}</span></td>
                                         <td>{{ $history->actor?->name ?? 'Sistem / Admin' }}</td>
-                                        <td><strong>{{ $history->spot?->code ?? ($new['code'] ?? $old['code'] ?? '-') }}</strong><br><span style="color: var(--text-secondary);">{{ $history->spot?->name ?? ($new['name'] ?? $old['name'] ?? 'Spot dihapus') }}</span></td>
                                         <td>
-                                            <span class="status-label status-inactive">{{ $actionLabels[$history->action] ?? $history->action }}</span>
-                                            @foreach($changed as $field)
-                                                @php $fieldLabels = ['name' => 'Nama', 'status' => 'Status', 'latitude' => 'Latitude', 'longitude' => 'Longitude', 'description' => 'Deskripsi', 'status_reason' => 'Alasan']; @endphp
-                                                @if(isset($fieldLabels[$field]))<br><strong>{{ $fieldLabels[$field] }}:</strong> {{ $old[$field] ?? '—' }} &rarr; {{ $new[$field] ?? '—' }}@endif
-                                            @endforeach
+                                            @if($history->action === 'QR_REGENERATED')
+                                                <span>Token QR spot diganti (token lama dicabut)</span>
+                                            @else
+                                                @foreach($changed as $field)
+                                                    @if(isset($fieldLabels[$field]))
+                                                        <div><strong>{{ $fieldLabels[$field] }}:</strong> {{ $old[$field] ?? '—' }} &rarr; {{ $new[$field] ?? '—' }}</div>
+                                                    @endif
+                                                @endforeach
+                                            @endif
                                         </td>
                                         <td>{{ $history->reason ?: '-' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada riwayat perubahan lokasi.</td></tr>
+                                    <tr><td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada riwayat perubahan lokasi.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -1293,22 +1486,93 @@
 
                 @if($canReview)
                 <div class="panel" style="margin-top: 20px;">
-                    <div class="toolbar"><strong style="font-size: 14px;">Riwayat Keputusan Review</strong></div>
+                    <div class="toolbar" style="flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+                        <strong style="font-size: 14px;">Riwayat Keputusan Review (Read-only)</strong>
+                        <form method="GET" action="/admin/feeding" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="hidden" name="tab" value="audit">
+                            <select name="review_decision" class="select-control" style="width: auto; min-width: 130px;">
+                                <option value="">Semua Keputusan</option>
+                                <option value="VERIFIED" {{ ($rFilters['decision'] ?? '') === 'VERIFIED' ? 'selected' : '' }}>Disetujui</option>
+                                <option value="REJECTED" {{ ($rFilters['decision'] ?? '') === 'REJECTED' ? 'selected' : '' }}>Ditolak</option>
+                            </select>
+                            <select name="review_spot_id" class="select-control" style="width: auto; min-width: 150px;">
+                                <option value="">Semua Spot</option>
+                                @foreach(($filterSpots ?? []) as $fs)
+                                    <option value="{{ $fs->id }}" {{ ($rFilters['spot_id'] ?? '') === $fs->id ? 'selected' : '' }}>{{ $fs->code }} — {{ $fs->name }}</option>
+                                @endforeach
+                            </select>
+                            <select name="review_reviewer_id" class="select-control" style="width: auto; min-width: 140px;">
+                                <option value="">Semua Reviewer</option>
+                                @foreach(($filterReviewers ?? []) as $fr)
+                                    <option value="{{ $fr->id }}" {{ ($rFilters['reviewer_id'] ?? '') === $fr->id ? 'selected' : '' }}>{{ $fr->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="date" name="review_date_from" class="input-control" style="width: auto;" value="{{ $rFilters['date_from'] ?? '' }}" title="Dari Tanggal">
+                            <input type="date" name="review_date_to" class="input-control" style="width: auto;" value="{{ $rFilters['date_to'] ?? '' }}" title="Sampai Tanggal">
+                            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                            <a href="/admin/feeding?tab=audit" class="btn btn-neutral btn-sm">Reset</a>
+                        </form>
+                    </div>
                     <div class="table-scroll">
                         <table class="data-table">
-                            <thead><tr><th>Waktu</th><th>Referensi</th><th>Relawan &amp; Spot</th><th>Keputusan</th><th>Reviewer</th><th>Alasan</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th>Waktu Keputusan</th>
+                                    <th>Spot &amp; Relawan</th>
+                                    <th>Waktu Kejadian</th>
+                                    <th>Keputusan</th>
+                                    <th>Flags &amp; Reward</th>
+                                    <th>Reviewer &amp; Alasan</th>
+                                    <th>Bukti</th>
+                                </tr>
+                            </thead>
                             <tbody>
                                 @forelse($reviewHistory as $review)
                                     <tr>
-                                        <td style="white-space: nowrap;">{{ $review->created_at?->format('d M Y, H:i') }}</td>
-                                        <td><span class="spot-code">{{ $review->activity?->feeding_record_ref ?? '-' }}</span></td>
-                                        <td><strong>{{ $review->activity?->user?->name ?? 'Relawan' }}</strong><br><span style="color: var(--text-secondary);">{{ $review->activity?->spot?->name ?? '-' }}</span></td>
-                                        <td>@if($review->decision === 'REJECTED')<span class="status-label status-rejected">Ditolak</span>@else<span class="status-label status-active">Disetujui</span>@endif</td>
-                                        <td>{{ $review->reviewer?->name ?? '-' }}</td>
-                                        <td>{{ $review->reason ?: '-' }}</td>
+                                        <td style="white-space: nowrap;">
+                                            {{ $review->created_at?->format('d M Y, H:i') }}
+                                            <div class="spot-code" style="margin-top: 4px;">{{ $review->activity?->feeding_record_ref ?? '-' }}</div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ $review->activity?->spot?->name ?? '-' }}</strong>
+                                            <br><span style="color: var(--text-secondary);">{{ $review->activity?->user?->name ?? 'Relawan' }}</span>
+                                        </td>
+                                        <td style="white-space: nowrap; color: var(--text-secondary);">
+                                            {{ ($review->activity?->finalized_at ?? $review->activity?->scanned_at)?->format('d M Y, H:i') ?? '-' }}
+                                        </td>
+                                        <td>
+                                            @if($review->decision === 'REJECTED')
+                                                <span class="status-label status-rejected">Ditolak</span>
+                                            @else
+                                                <span class="status-label status-active">Disetujui</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div style="font-size: 12px; font-weight: 600;">Reward: {{ $review->activity?->reward_status ?? '-' }}</div>
+                                            @if(!empty($review->activity?->flags))
+                                                <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                                    @foreach($review->activity->flags as $fl)
+                                                        <span class="status-label status-temp" style="font-size: 11px;">{{ $fl }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span style="color: var(--text-muted); font-size: 12px;">Tanpa flag</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <strong>{{ $review->reviewer?->name ?? '-' }}</strong>
+                                            <div style="color: var(--text-secondary); margin-top: 2px;">{{ $review->reason ?: '-' }}</div>
+                                        </td>
+                                        <td>
+                                            @if($review->activity_id)
+                                                <a href="/admin/feeding/reviews/{{ $review->activity_id }}?from=audit" class="btn btn-neutral btn-sm">Lihat Detail</a>
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada keputusan review.</td></tr>
+                                    <tr><td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">Belum ada keputusan review.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -1316,6 +1580,45 @@
                 </div>
                 @endif
             </section>
+
+            <!-- ================= TAB 4: PENGATURAN FEEDING_SETTINGS (MEOW-21) ================= -->
+            @if($canManageSpots)
+            <section id="tabSection-settings" class="tab-section {{ $activeTab === 'settings' ? 'active' : '' }}">
+                <div class="panel">
+                    <div class="toolbar">
+                        <div>
+                            <strong style="font-size: 14px;">Pengaturan Parameter Feeding Spot (feeding_settings)</strong>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Perubahan tersimpan ke database, tercatat di audit log, dan langsung berlaku tanpa rilis aplikasi.</div>
+                        </div>
+                    </div>
+                    <form method="POST" action="/admin/feeding/settings" style="padding: 20px;">
+                        @csrf
+                        <div class="form-grid">
+                            @foreach(($settings ?? []) as $settingKey => $meta)
+                                <div class="form-group">
+                                    <label class="form-label" for="setting_{{ $settingKey }}">{{ $meta['label'] }}</label>
+                                    <input
+                                        type="number"
+                                        id="setting_{{ $settingKey }}"
+                                        name="{{ $settingKey }}"
+                                        class="input-control"
+                                        value="{{ $meta['value'] }}"
+                                        min="{{ $meta['min'] }}"
+                                        max="{{ $meta['max'] }}"
+                                        step="{{ $meta['step'] }}"
+                                        required
+                                    >
+                                    <span style="font-size: 11.5px; color: var(--text-muted);">{{ $meta['description'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+            @endif
         </main>
     </div>
 
@@ -1621,11 +1924,12 @@
         const TAB_TITLES = {
             spots: 'Lokasi Feeding Spot',
             reviews: 'Antrean Review',
-            audit: 'Riwayat Spot & Review'
+            audit: 'Riwayat Spot & Review',
+            settings: 'Pengaturan Feeding Spot'
         };
 
         function switchTab(tabName) {
-            ['spots', 'reviews', 'audit'].forEach((t) => {
+            ['spots', 'reviews', 'audit', 'settings'].forEach((t) => {
                 const sec = document.getElementById('tabSection-' + t);
                 const btn = document.getElementById('navBtn-' + t);
                 if (sec) sec.classList.toggle('active', t === tabName);

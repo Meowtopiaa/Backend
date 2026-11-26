@@ -2111,4 +2111,369 @@ class FeedingSpotTest extends TestCase
         \Illuminate\Support\Facades\Storage::disk($defaultDisk)->assertExists('qr-spots/SPOT-KTULT-01.svg');
         \Illuminate\Support\Facades\Storage::disk($defaultDisk)->assertExists('qr-spots/SPOT-MSU-01.png');
     }
+
+    public function test_meow_21_admin_feeding_settings_api_and_web_panel_with_permissions_and_audit(): void
+    {
+        // 1. Mahasiswa tanpa permission spot.manage ditolak 403
+        $this->actingAs($this->student, 'sanctum')
+            ->getJson('/api/v1/admin/feeding/settings')
+            ->assertStatus(403);
+
+        $this->actingAs($this->student, 'sanctum')
+            ->putJson('/api/v1/admin/feeding/settings', ['cooldown_hours' => 8])
+            ->assertStatus(403);
+
+        // 2. Admin spot.manage dapat membaca pengaturan default
+        $getResp = $this->actingAs($this->spotAdmin, 'sanctum')
+            ->getJson('/api/v1/admin/feeding/settings');
+        $getResp->assertStatus(200)
+            ->assertJsonPath('data.intent_window_minutes.value', 15)
+            ->assertJsonPath('data.finalize_window_minutes.value', 60)
+            ->assertJsonPath('data.cooldown_hours.value', 6)
+            ->assertJsonPath('data.random_sample_rate.value', 0.1);
+
+        // 3. Validasi gagal: min_points > max_points dan intent > finalize ditolak 422
+        $this->actingAs($this->spotAdmin, 'sanctum')
+            ->putJson('/api/v1/admin/feeding/settings', [
+                'min_points' => 25,
+                'max_points' => 15,
+            ])
+            ->assertStatus(422);
+
+        $this->actingAs($this->spotAdmin, 'sanctum')
+            ->putJson('/api/v1/admin/feeding/settings', [
+                'intent_window_minutes' => 90,
+                'finalize_window_minutes' => 60,
+            ])
+            ->assertStatus(422);
+
+        // 4. Pembaruan valid tersimpan, mensinkronkan alias reward, dan tercatat di audit_logs
+        $putResp = $this->actingAs($this->spotAdmin, 'sanctum')
+            ->putJson('/api/v1/admin/feeding/settings', [
+                'intent_window_minutes' => 20,
+                'finalize_window_minutes' => 75,
+                'cooldown_hours' => 8,
+                'random_sample_rate' => 0.15,
+                'base_points' => 12,
+                'target_14d_feedings' => 21,
+                'daily_reward_cap_count' => 4,
+            ]);
+
+        $putResp->assertStatus(200)
+            ->assertJsonPath('data.intent_window_minutes.value', 20)
+            ->assertJsonPath('data.cooldown_hours.value', 8)
+            ->assertJsonPath('data.random_sample_rate.value', 0.15)
+            ->assertJsonPath('data.base_points.value', 12);
+
+        $this->assertEquals(12.0, FeedingSetting::getFloat('reward_base_p0'));
+        $this->assertEquals(21.0, FeedingSetting::getFloat('target_feedings_14d'));
+        $this->assertEquals(4.0, FeedingSetting::getFloat('daily_reward_cap'));
+
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_id' => $this->spotAdmin->id,
+            'action' => 'FEEDING_SETTINGS_UPDATED',
+            'subject_type' => 'feeding_settings',
+        ]);
+
+        // 5. Panel Admin web tab=settings dapat dibuka dan diperbarui
+        $this->actingAs($this->spotAdmin, 'web')
+            ->get('/admin/feeding?tab=settings')
+            ->assertStatus(200)
+            ->assertSee('Pengaturan Parameter Feeding Spot');
+
+        $this->actingAs($this->spotAdmin, 'web')
+            ->post('/admin/feeding/settings', [
+                'intent_window_minutes' => 18,
+                'finalize_window_minutes' => 70,
+                'cooldown_hours' => 7,
+                'random_sample_rate' => 0.2,
+                'new_user_review_threshold' => 2,
+                'daily_reward_cap_count' => 3,
+                'target_14d_feedings' => 14,
+                'base_points' => 10,
+                'min_points' => 5,
+                'max_points' => 20,
+            ])
+            ->assertRedirect('/admin/feeding?tab=settings&notice=' . urlencode('Pengaturan feeding_settings berhasil disimpan dan langsung berlaku.'));
+
+        $this->assertEquals(18.0, FeedingSetting::getFloat('intent_window_minutes'));
+    }
+
+    public function test_meow_22_concurrent_reviewer_conflict_returns_409_and_panel_orders_oldest_first(): void
+    {
+        $secondReviewer = User::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'Reviewer Kedua',
+            'email' => 'reviewer2@telkomuniversity.ac.id',
+            'password' => bcrypt('password'),
+            'user_type' => 'STAF',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $secondReviewer->givePermissionTo('feeding.review');
+
+        DB::table('point_balances')->updateOrInsert(
+            ['user_id' => $this->student->id],
+            ['total_points' => 0, 'updated_at' => now()]
+        );
+
+        $olderActivity = FeedingActivity::create([
+            'id' => (string) Str::ulid(),
+            'feeding_record_ref' => 'REF-M22-OLDEST',
+            'user_id' => $this->student->id,
+            'spot_id' => $this->activeSpot->id,
+            'location_lat' => (float) $this->activeSpot->latitude,
+            'location_lng' => (float) $this->activeSpot->longitude,
+            'status' => 'UNDER_REVIEW',
+            'reward_status' => 'PENDING',
+            'potential_points' => 10,
+            'flags' => ['RANDOM_SAMPLE'],
+            'food_type' => 'dry_food',
+            'food_amount' => '1 mangkuk',
+            'scanned_at' => now()->subMinutes(40),
+            'finalized_at' => now()->subMinutes(35),
+        ]);
+
+        $newerActivity = FeedingActivity::create([
+            'id' => (string) Str::ulid(),
+            'feeding_record_ref' => 'REF-M22-NEWEST',
+            'user_id' => $this->student->id,
+            'spot_id' => $this->activeSpot->id,
+            'location_lat' => (float) $this->activeSpot->latitude,
+            'location_lng' => (float) $this->activeSpot->longitude,
+            'status' => 'UNDER_REVIEW',
+            'reward_status' => 'PENDING',
+            'potential_points' => 10,
+            'flags' => ['FIRST_TWO_SUBMISSIONS'],
+            'food_type' => 'wet_food',
+            'food_amount' => '1 sachet',
+            'scanned_at' => now()->subMinutes(10),
+            'finalized_at' => now()->subMinutes(5),
+        ]);
+
+        // 1. Panel admin antrean review mengurutkan dari pengajuan terlama lebih dulu
+        $panelResp = $this->actingAs($this->spotAdmin, 'web')
+            ->get('/admin/feeding?tab=reviews');
+        $panelResp->assertStatus(200)
+            ->assertSeeInOrder(['REF-M22-OLDEST', 'REF-M22-NEWEST']);
+
+        // 2. Reviewer pertama menyetujui pengajuan -> sukses 200
+        $firstResp = $this->actingAs($this->spotAdmin, 'sanctum')
+            ->postJson("/api/v1/admin/feeding/activities/{$olderActivity->id}/review", [
+                'decision' => 'VERIFIED',
+                'reason' => 'Bukti jelas oleh reviewer pertama',
+            ]);
+        $firstResp->assertStatus(200)
+            ->assertJsonPath('data.status', 'VERIFIED');
+
+        $reviewCountBefore = DB::table('feeding_reviews')->where('activity_id', $olderActivity->id)->count();
+        $balanceBefore = (int) DB::table('point_balances')->where('user_id', $this->student->id)->value('total_points');
+
+        // 3. Reviewer kedua menekan tombol pada aktivitas yang sama -> ditolak 409 CONFLICT tanpa keputusan/poin ganda
+        $conflictResp = $this->actingAs($secondReviewer, 'sanctum')
+            ->postJson("/api/v1/admin/feeding/activities/{$olderActivity->id}/review", [
+                'decision' => 'VERIFIED',
+                'reason' => 'Mencoba memutuskan pengajuan yang sudah diputuskan',
+            ]);
+        $conflictResp->assertStatus(409)
+            ->assertJsonPath('code', 'CONFLICT');
+
+        $conflictRejectResp = $this->actingAs($secondReviewer, 'sanctum')
+            ->postJson("/api/v1/admin/feeding/activities/{$olderActivity->id}/review", [
+                'decision' => 'REJECTED',
+                'reason' => 'Mencoba menolak setelah disetujui reviewer lain',
+            ]);
+        $conflictRejectResp->assertStatus(409)
+            ->assertJsonPath('code', 'CONFLICT');
+
+        $this->assertEquals($reviewCountBefore, DB::table('feeding_reviews')->where('activity_id', $olderActivity->id)->count());
+        $this->assertEquals($balanceBefore, (int) DB::table('point_balances')->where('user_id', $this->student->id)->value('total_points'));
+
+        // 4. Pengajuan yang sudah diputuskan hilang dari antrean aktif
+        $this->actingAs($this->spotAdmin, 'web')
+            ->get('/admin/feeding?tab=reviews')
+            ->assertStatus(200)
+            ->assertDontSee('REF-M22-OLDEST')
+            ->assertSee('REF-M22-NEWEST');
+    }
+
+    public function test_meow_28_and_29_scan_resolver_revoked_spot_and_audit_log_hides_raw_qr_token(): void
+    {
+        $oldToken = $this->activeSpot->qr_token;
+
+        // Regenerate QR melalui endpoint admin
+        $regenResp = $this->actingAs($this->spotAdmin, 'sanctum')
+            ->postJson("/api/v1/admin/feeding/spots/{$this->activeSpot->id}/qr/regenerate");
+        $regenResp->assertStatus(200);
+        $newToken = $regenResp->json('data.qr_token');
+
+        // 1. ScanResolver menolak token spot yang dicabut dengan QR_REVOKED (bukan QR_INVALID)
+        $resolver = app(\App\Modules\Core\Services\ScanResolver::class);
+        try {
+            $resolver->resolve("MTP1.S.{$oldToken}");
+            $this->fail('Seharusnya ScanResolver melempar QR_REVOKED untuk token spot yang dicabut.');
+        } catch (\Symfony\Component\HttpKernel\Exception\BadRequestHttpException $e) {
+            $this->assertStringStartsWith('QR_REVOKED:', $e->getMessage());
+        }
+
+        // Token baru tetap berhasil di-resolve
+        $resolvedNew = $resolver->resolve("MTP1.S.{$newToken}");
+        $this->assertEquals('spot', $resolvedNew['type']);
+        $this->assertEquals($this->activeSpot->id, $resolvedNew['id']);
+
+        // 2. MEOW-29: Token QR mentah tidak bocor di feeding_spot_histories maupun audit_logs
+        $latestAudit = DB::table('audit_logs')
+            ->where('action', 'SPOT_QR_REGENERATED')
+            ->where('subject_id', $this->activeSpot->id)
+            ->latest('created_at')
+            ->first();
+        $this->assertNotNull($latestAudit);
+        $this->assertStringNotContainsString($oldToken, (string) $latestAudit->reason);
+        $this->assertStringNotContainsString($newToken, (string) $latestAudit->reason);
+
+        // 3. MEOW-29: Gagal menyimpan spot (rollback) tidak meninggalkan baris feeding_spot_histories
+        $historyCountBefore = DB::table('feeding_spot_histories')->count();
+        try {
+            app(\App\Modules\FeedingSpot\Services\FeedingSpotManagementService::class)->createSpot([
+                'code' => $this->activeSpot->code, // duplikat unique -> gagal
+                'name' => 'Spot Duplikat Rollback',
+                'latitude' => -6.9731,
+                'longitude' => 107.6300,
+                'status' => 'ACTIVE',
+            ], $this->spotAdmin);
+            $this->fail('Seharusnya melempar UniqueConstraintViolationException untuk kode spot duplikat.');
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            // diharapkan
+        }
+        $this->assertEquals($historyCountBefore, DB::table('feeding_spot_histories')->count());
+    }
+
+    public function test_meow_30_admin_read_only_spot_and_review_histories_with_filters_permissions_and_no_pii(): void
+    {
+        $this->student->update([
+            'phone' => '089911223344',
+            'identity_number' => '1301998877',
+        ]);
+
+        // Buat spot-only admin & review-only admin untuk menguji isolasi permission MEOW-30
+        $spotOnlyAdmin = User::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'Admin Spot Saja',
+            'email' => 'spotonly@telkomuniversity.ac.id',
+            'password' => bcrypt('password'),
+            'user_type' => 'STAF',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $spotOnlyAdmin->givePermissionTo('spot.manage');
+
+        $reviewOnlyAdmin = User::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'Reviewer Saja',
+            'email' => 'reviewonly@telkomuniversity.ac.id',
+            'password' => bcrypt('password'),
+            'user_type' => 'STAF',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
+        $reviewOnlyAdmin->givePermissionTo('feeding.review');
+
+        // Buat histori spot: CREATED + UPDATED + DEACTIVATED
+        $spotSvc = app(\App\Modules\FeedingSpot\Services\FeedingSpotManagementService::class);
+        $spot = $spotSvc->createSpot([
+            'name' => 'Spot Audit MEOW-30',
+            'latitude' => -6.9720,
+            'longitude' => 107.6295,
+            'status' => 'ACTIVE',
+        ], $spotOnlyAdmin);
+        $spotSvc->updateSpot($spot, ['status' => 'INACTIVE', 'status_reason' => 'Renovasi jalur pejalan'], $spotOnlyAdmin);
+
+        // Buat aktivitas + bukti + rule result lalu putuskan via FeedingReviewService
+        $mediaId = $this->createMediaRecord($this->student, hash('sha256', 'm30-photo'));
+        $activity = FeedingActivity::create([
+            'id' => (string) Str::ulid(),
+            'feeding_record_ref' => 'REF-M30-HIST',
+            'user_id' => $this->student->id,
+            'spot_id' => $spot->id,
+            'location_lat' => (float) $spot->latitude,
+            'location_lng' => (float) $spot->longitude,
+            'status' => 'UNDER_REVIEW',
+            'reward_status' => 'PENDING',
+            'potential_points' => 10,
+            'flags' => ['PHOTO_REUSED'],
+            'food_type' => 'wet_food',
+            'food_amount' => '1 sachet',
+            'scanned_at' => now()->subMinutes(15),
+            'finalized_at' => now()->subMinutes(10),
+        ]);
+        FeedingEvidence::create([
+            'activity_id' => $activity->id,
+            'media_id' => $mediaId,
+            'captured_at' => now()->subMinutes(11),
+            'sort_order' => 0,
+        ]);
+        FeedingRuleResult::create([
+            'activity_id' => $activity->id,
+            'rule' => 'R4_PHOTO_UNIQUE',
+            'result' => 'REVIEW',
+            'detail' => 'Hash foto pernah dipakai sebelumnya.',
+        ]);
+
+        app(\App\Modules\FeedingSpot\Services\FeedingReviewService::class)->reviewActivity(
+            $activity,
+            $reviewOnlyAdmin,
+            'REJECTED',
+            'Foto tidak menunjukkan mangkuk pakan di lokasi'
+        );
+
+        // 1. Uji izin 403 per tabel
+        $this->actingAs($reviewOnlyAdmin, 'sanctum')
+            ->getJson('/api/v1/admin/feeding/spot-histories')
+            ->assertStatus(403);
+        $this->actingAs($spotOnlyAdmin, 'sanctum')
+            ->getJson('/api/v1/admin/feeding/review-histories')
+            ->assertStatus(403);
+
+        // 2. Uji filter Riwayat Lokasi (spot_id & action)
+        $spotHistResp = $this->actingAs($spotOnlyAdmin, 'sanctum')
+            ->getJson("/api/v1/admin/feeding/spot-histories?spot_id={$spot->id}&action=DEACTIVATED");
+        $spotHistResp->assertStatus(200)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.action', 'DEACTIVATED')
+            ->assertJsonPath('data.0.actor_name', 'Admin Spot Saja');
+
+        // 3. Uji filter Riwayat Review + signed URL + flags + reward_status + tanpa PII
+        $revHistResp = $this->actingAs($reviewOnlyAdmin, 'sanctum')
+            ->getJson("/api/v1/admin/feeding/review-histories?decision=REJECTED&spot_id={$spot->id}&reviewer_id={$reviewOnlyAdmin->id}");
+        $revHistResp->assertStatus(200)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.decision', 'REJECTED')
+            ->assertJsonPath('data.0.reward_status', 'NOT_ELIGIBLE')
+            ->assertJsonPath('data.0.flags.0', 'PHOTO_REUSED')
+            ->assertJsonPath('data.0.rule_results.0.rule', 'R4_PHOTO_UNIQUE');
+
+        $signedUrl = $revHistResp->json('data.0.evidence.0.signed_url');
+        $this->assertNotEmpty($signedUrl);
+        $this->assertStringContainsString('signature=', $signedUrl);
+        $this->assertStringNotContainsString('089911223344', $revHistResp->getContent());
+        $this->assertStringNotContainsString('1301998877', $revHistResp->getContent());
+
+        // 4. Uji halaman web Tab Riwayat & Detail Review bersifat read-only (tanpa tombol ubah/hapus)
+        $auditWebResp = $this->actingAs($reviewOnlyAdmin, 'web')
+            ->get("/admin/feeding?tab=audit&review_decision=REJECTED&review_spot_id={$spot->id}");
+        $auditWebResp->assertStatus(200)
+            ->assertSee('REF-M30-HIST')
+            ->assertSee('PHOTO_REUSED')
+            ->assertSee('NOT_ELIGIBLE')
+            ->assertSee('Lihat Detail')
+            ->assertDontSee('Riwayat Lokasi Spot (Read-only)')
+            ->assertDontSee('089911223344');
+
+        $readOnlyDetailResp = $this->actingAs($reviewOnlyAdmin, 'web')
+            ->get("/admin/feeding/reviews/{$activity->id}?from=audit");
+        $readOnlyDetailResp->assertStatus(200)
+            ->assertSee('Ringkasan Keputusan (Read-only)')
+            ->assertSee('Kembali ke Riwayat')
+            ->assertDontSee('id="reviewDecisionForm"', false);
+    }
 }

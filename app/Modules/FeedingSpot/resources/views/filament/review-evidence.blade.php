@@ -717,7 +717,9 @@
                 @endif
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <a href="{{ $backUrl ?? '/admin/feeding?tab=reviews' }}" class="btn btn-neutral btn-sm">Kembali ke Antrean</a>
+                <a href="{{ $backUrl ?? '/admin/feeding?tab=reviews' }}" class="btn btn-neutral btn-sm">
+                    {{ str_contains(($backUrl ?? ''), 'tab=audit') ? 'Kembali ke Riwayat' : 'Kembali ke Antrean' }}
+                </a>
                 <form method="POST" action="/admin/feeding/logout">
                     @csrf
                     <button type="submit" class="btn btn-neutral btn-sm">Keluar</button>
@@ -831,12 +833,24 @@
                 </div>
 
                 <!-- RIGHT COLUMN: KEPUTUSAN REVIEWER -->
+                @php
+                    $readOnlyMode = ($isReadOnly ?? false) || $activity->status !== 'UNDER_REVIEW';
+                @endphp
                 <div class="detail-side">
                     <div class="section-box">
                         <div class="section-header">
-                            <h2 class="section-title">Panel Keputusan Reviewer</h2>
+                            <h2 class="section-title">{{ $readOnlyMode ? 'Ringkasan Keputusan (Read-only)' : 'Panel Keputusan Reviewer' }}</h2>
                         </div>
                         <div class="section-body">
+                            @if($readOnlyMode)
+                                <div style="padding: 12px; border-radius: 8px; background: var(--surface-subtle); border: 1px solid var(--border); font-size: 13px;">
+                                    <div><strong>Status Akhir:</strong> {{ $activity->status }}</div>
+                                    <div style="margin-top: 4px;"><strong>Reward Status:</strong> {{ $activity->reward_status ?? '-' }}</div>
+                                    <div style="margin-top: 6px; color: var(--text-secondary);">
+                                        Pengajuan ini sudah diputuskan dan bersifat read-only. Tidak ada tombol ubah atau hapus riwayat.
+                                    </div>
+                                </div>
+                            @else
                             <form method="POST" action="{{ $reviewActionUrl ?? '/api/v1/admin/feeding/activities/' . $activity->id . '/review' }}" id="reviewDecisionForm" onsubmit="return handleDecisionSubmit(event);">
                                 @csrf
                                 <input type="hidden" name="decision" id="selectedDecisionInput" value="VERIFIED">
@@ -877,6 +891,7 @@
                                     </button>
                                 </div>
                             </form>
+                            @endif
 
                             @if($activity->reviews && $activity->reviews->count() > 0)
                                 <div class="divider"></div>
