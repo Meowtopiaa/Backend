@@ -1,0 +1,798 @@
+openapi: 3.0.3
+info:
+  title: Meowtopia API — Adopt Feeding Spot (Acumalaka)
+  version: 1.0.0
+  description: |
+    Kontrak REST API modul Adopt Feeding Spot (AFS) sesuai PRD Final v1.1 §6.3, §8.4, dan Lampiran A.
+    - Tidak memakai GPS untuk verifikasi pemberian makan (OQ-01, Aturan Keras #8).
+    - Semua ID memakai ULID (`char(26)`).
+    - Endpoint tulis rawan duplikat (†) mewajibkan header `Idempotency-Key`.
+    - Semua izin admin diperiksa melalui permission Spatie (`spot.manage`, `feeding.review`).
+servers:
+  - url: http://127.0.0.1:8000/api/v1
+    description: Local Development Server
+
+tags:
+  - name: Feeding Public
+    description: Daftar spot, detail spot, foto spot, dan heatmap 14 hari
+  - name: Feeding User
+    description: Alur pemberian makan (scan QR spot, intent, finalize, riwayat pengguna)
+  - name: Feeding Admin Spots
+    description: Manajemen spot pakan, QR, asosiasi kucing, pengaturan, dan riwayat lokasi (`spot.manage`)
+  - name: Feeding Admin Review
+    description: Antrean review manual, bukti foto signed URL, keputusan reviewer, dan riwayat review (`feeding.review`)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Kunci unik klien (UUID v4) untuk menjamin idempotensi endpoint bertanda †.
+      schema:
+        type: string
+        maxLength: 128
+    SpotId:
+      name: id
+      in: path
+      required: true
+      description: ULID spot atau kode unik spot (mis. `SPOT-TULT-01`).
+      schema:
+        type: string
+    ActivityId:
+      name: id
+      in: path
+      required: true
+      description: ULID aktivitas pemberian makan.
+      schema:
+        type: string
+
+  schemas:
+    ApiError:
+      type: object
+      required: [success, code, message, request_id]
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+        errors:
+          type: object
+          nullable: true
+        request_id:
+          type: string
+
+    PublicFeedingSpot:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+          example: SPOT-TULT-01
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        status:
+          type: string
+          enum: [ACTIVE, TEMPORARILY_UNAVAILABLE]
+        status_reason:
+          type: string
+          nullable: true
+        last_fed_at:
+          type: string
+          format: date-time
+          nullable: true
+        has_pending_review:
+          type: boolean
+        verified_count_14d:
+          type: integer
+          nullable: true
+        is_stale:
+          type: boolean
+        photo_url:
+          type: string
+          nullable: true
+
+    AdminFeedingSpot:
+      allOf:
+        - $ref: '#/components/schemas/PublicFeedingSpot'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [ACTIVE, TEMPORARILY_UNAVAILABLE, INACTIVE]
+            qr_token:
+              type: string
+            qr_payload:
+              type: string
+              example: MTP1.S.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            territory_id:
+              type: string
+              nullable: true
+            cats_count:
+              type: integer
+
+    FeedingSpotHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        spot_id:
+          type: string
+        actor_id:
+          type: string
+          nullable: true
+        actor_name:
+          type: string
+        spot:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            code:
+              type: string
+            name:
+              type: string
+        action:
+          type: string
+          enum: [CREATED, UPDATED, DEACTIVATED, REACTIVATED, MARKED_UNAVAILABLE, QR_REGENERATED]
+        changes:
+          type: object
+          nullable: true
+        reason:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    FeedingReviewHistoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+        activity_id:
+          type: string
+        feeding_record_ref:
+          type: string
+        decision:
+          type: string
+          enum: [VERIFIED, REJECTED]
+        reason:
+          type: string
+        reviewer:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            user_type:
+              type: string
+        spot:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            code:
+              type: string
+            name:
+              type: string
+        flags:
+          type: array
+          items:
+            type: string
+        reward_status:
+          type: string
+          enum: [NOT_ELIGIBLE, PENDING, CREDITED, FAILED, REVERSED]
+        feeding_occurred_at:
+          type: string
+          format: date-time
+          nullable: true
+        decided_at:
+          type: string
+          format: date-time
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              media_id:
+                type: string
+              signed_url:
+                type: string
+              expires_in_seconds:
+                type: integer
+                example: 600
+        rule_results:
+          type: array
+          items:
+            type: object
+            properties:
+              rule:
+                type: string
+              result:
+                type: string
+              detail:
+                type: string
+
+    FeedingSettingsMap:
+      type: object
+      properties:
+        intent_window_minutes:
+          type: integer
+          example: 15
+        finalize_window_minutes:
+          type: integer
+          example: 60
+        cooldown_hours:
+          type: integer
+          example: 6
+        new_user_review_threshold:
+          type: integer
+          example: 2
+        random_sample_rate:
+          type: number
+          format: double
+          example: 0.1
+        daily_reward_cap_count:
+          type: integer
+          example: 3
+        target_14d_feedings:
+          type: integer
+          example: 28
+        base_points:
+          type: integer
+          example: 10
+        min_points:
+          type: integer
+          example: 5
+        max_points:
+          type: integer
+          example: 20
+
+paths:
+  /feeding/spots:
+    get:
+      tags: [Feeding Public]
+      summary: Daftar spot publik aktif & sementara tidak tersedia (tanpa INACTIVE)
+      responses:
+        '200':
+          description: Berhasil mengambil daftar spot publik
+
+  /feeding/spots/{id}:
+    get:
+      tags: [Feeding Public]
+      summary: Detail spot publik beserta last_fed_at & agregat 14 hari
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+      responses:
+        '200':
+          description: Detail spot publik
+        '404':
+          description: Spot tidak ditemukan atau INACTIVE
+
+  /feeding/heatmap:
+    get:
+      tags: [Feeding Public]
+      summary: Agregat coverage 14 hari terakhir per spot dan zona
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 14
+      responses:
+        '200':
+          description: Data heatmap 14 hari
+
+  /feeding/activities/mine:
+    get:
+      tags: [Feeding User]
+      security:
+        - bearerAuth: []
+      summary: Riwayat aktivitas pemberian makan milik pengguna yang login
+      responses:
+        '200':
+          description: Daftar riwayat aktivitas
+
+  /feeding/activities:
+    post:
+      tags: [Feeding User]
+      security:
+        - bearerAuth: []
+      summary: Buka sesi pemberian makan (DRAFT) via QR spot MTP1.S.<token> atau kode manual (†)
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [qr_token]
+              properties:
+                qr_token:
+                  type: string
+                  example: MTP1.S.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      responses:
+        '201':
+          description: Sesi DRAFT berhasil dibuat
+        '409':
+          description: Konflik idempotensi
+        '422':
+          description: QR_INVALID, QR_REVOKED, QR_WRONG_TYPE, SPOT_UNAVAILABLE, atau COOLDOWN_ACTIVE
+
+  /feeding/activities/{id}/intent:
+    post:
+      tags: [Feeding User]
+      security:
+        - bearerAuth: []
+      summary: Konfirmasi intent memberi makan (batas 15 menit sejak scan) (†)
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Intent berhasil dicatat
+        '403':
+          description: Bukan pemilik sesi
+        '422':
+          description: SESSION_EXPIRED
+
+  /feeding/activities/{id}/finalize:
+    post:
+      tags: [Feeding User]
+      security:
+        - bearerAuth: []
+      summary: Finalisasi sesi pemberian makan dengan 1-3 foto bukti (†)
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [media_ids, food_type]
+              properties:
+                media_ids:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: string
+                food_type:
+                  type: string
+                  example: dry_food
+                food_amount:
+                  type: string
+                  nullable: true
+                cat_code:
+                  type: string
+                  nullable: true
+                notes:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Aktivitas selesai diproses (VERIFIED, UNDER_REVIEW, atau REJECTED) dengan reward_status terpisah
+        '403':
+          description: Bukan pemilik sesi atau media bukan milik pengguna
+        '422':
+          description: Validasi gagal atau SESSION_EXPIRED
+
+  /admin/feeding/spots:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Daftar seluruh spot untuk admin (termasuk INACTIVE), filter status & pencarian
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, TEMPORARILY_UNAVAILABLE, INACTIVE]
+        - name: territory_id
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 15
+      responses:
+        '200':
+          description: Daftar spot admin berpaginasi
+        '403':
+          description: Tidak memiliki permission spot.manage
+    post:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Tambah spot pakan baru dan catat riwayat CREATED
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, latitude, longitude]
+              properties:
+                code:
+                  type: string
+                  nullable: true
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                latitude:
+                  type: number
+                  minimum: -90
+                  maximum: 90
+                longitude:
+                  type: number
+                  minimum: -180
+                  maximum: 180
+                territory_id:
+                  type: string
+                  nullable: true
+                status:
+                  type: string
+                  enum: [ACTIVE, TEMPORARILY_UNAVAILABLE, INACTIVE]
+                status_reason:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Spot berhasil dibuat
+        '403':
+          description: Tidak memiliki permission spot.manage
+        '422':
+          description: Validasi gagal
+
+  /admin/feeding/spots/{id}:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Detail lengkap spot admin termasuk status_reason, QR aktif, kucing, & riwayat
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+      responses:
+        '200':
+          description: Detail spot admin
+        '403':
+          description: Tidak memiliki permission spot.manage
+        '404':
+          description: Spot tidak ditemukan
+    patch:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Perbarui spot atau nonaktifkan (INACTIVE tanpa DELETE) dan catat riwayat
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                latitude:
+                  type: number
+                  minimum: -90
+                  maximum: 90
+                longitude:
+                  type: number
+                  minimum: -180
+                  maximum: 180
+                territory_id:
+                  type: string
+                  nullable: true
+                status:
+                  type: string
+                  enum: [ACTIVE, TEMPORARILY_UNAVAILABLE, INACTIVE]
+                status_reason:
+                  type: string
+                  nullable: true
+      responses:
+        '200':
+          description: Spot diperbarui
+        '403':
+          description: Tidak memiliki permission spot.manage
+        '422':
+          description: Validasi gagal
+
+  /admin/feeding/spots/{id}/qr/regenerate:
+    post:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Ganti token QR spot, cabut token lama (QR_REVOKED), dan catat riwayat QR_REGENERATED
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+      responses:
+        '200':
+          description: Token QR baru berhasil dibuat
+        '403':
+          description: Tidak memiliki permission spot.manage
+
+  /admin/feeding/spots/qr-sheet:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Lembar cetak HTML seluruh QR spot aktif
+      responses:
+        '200':
+          description: Lembar cetak QR
+
+  /admin/feeding/spots/{id}/qr-sheet:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Lembar cetak HTML QR untuk satu spot (MTP1.S.<token> + kode manual)
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+      responses:
+        '200':
+          description: Lembar cetak QR spot
+
+  /admin/feeding/spots/{id}/qr-download:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Unduh berkas QR spot dalam format SVG atau PNG
+      parameters:
+        - $ref: '#/components/parameters/SpotId'
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [svg, png]
+            default: png
+      responses:
+        '200':
+          description: Berkas gambar QR
+
+  /admin/feeding/settings:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Ambil seluruh pengaturan feeding_settings (MEOW-21)
+      responses:
+        '200':
+          description: Daftar pengaturan feeding_settings
+        '403':
+          description: Tidak memiliki permission spot.manage
+    put:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Perbarui pengaturan feeding_settings tanpa rilis dan catat audit log (MEOW-21)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedingSettingsMap'
+      responses:
+        '200':
+          description: Pengaturan berhasil diperbarui
+        '403':
+          description: Tidak memiliki permission spot.manage
+        '422':
+          description: Validasi parameter gagal
+
+  /admin/feeding/spot-histories:
+    get:
+      tags: [Feeding Admin Spots]
+      security:
+        - bearerAuth: []
+      summary: Riwayat perubahan lokasi spot (read-only, filterable) (MEOW-29 & MEOW-30)
+      parameters:
+        - name: spot_id
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+            enum: [CREATED, UPDATED, DEACTIVATED, REACTIVATED, MARKED_UNAVAILABLE, QR_REGENERATED]
+        - name: actor_id
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Daftar riwayat lokasi spot berpaginasi
+        '403':
+          description: Tidak memiliki permission spot.manage
+
+  /admin/feeding/review-queue:
+    get:
+      tags: [Feeding Admin Review]
+      security:
+        - bearerAuth: []
+      summary: Antrean review aktivitas UNDER_REVIEW diurutkan dari terlama (MEOW-12 & MEOW-22)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            default: UNDER_REVIEW
+        - name: exclude_self
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: Daftar antrean review tanpa PII pengguna
+        '403':
+          description: Tidak memiliki permission feeding.review
+
+  /admin/feeding/activities/{id}/review:
+    post:
+      tags: [Feeding Admin Review]
+      security:
+        - bearerAuth: []
+      summary: Putuskan aktivitas (VERIFIED atau REJECTED) dengan alasan wajib (MEOW-12 & MEOW-22)
+      parameters:
+        - $ref: '#/components/parameters/ActivityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision, reason]
+              properties:
+                decision:
+                  type: string
+                  enum: [VERIFIED, REJECTED]
+                reason:
+                  type: string
+                  maxLength: 1000
+      responses:
+        '200':
+          description: Keputusan tersimpan (atau replay idempoten dari reviewer yang sama)
+        '403':
+          description: Tidak punya izin feeding.review atau SELF_REVIEW_FORBIDDEN
+        '409':
+          description: CONFLICT — pengajuan sudah diputuskan reviewer lain
+        '422':
+          description: Validasi gagal
+
+  /admin/feeding/review-histories:
+    get:
+      tags: [Feeding Admin Review]
+      security:
+        - bearerAuth: []
+      summary: Riwayat keputusan review manual (read-only, filterable, tanpa PII) (MEOW-30)
+      parameters:
+        - name: decision
+          in: query
+          schema:
+            type: string
+            enum: [VERIFIED, REJECTED]
+        - name: spot_id
+          in: query
+          schema:
+            type: string
+        - name: reviewer_id
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Daftar riwayat keputusan review berpaginasi
+        '403':
+          description: Tidak memiliki permission feeding.review
+
+  /admin/feeding/evidence/{mediaId}/file:
+    get:
+      tags: [Feeding Admin Review]
+      summary: Stream foto bukti pakan melalui URL bertanda tangan (berlaku 10 menit)
+      parameters:
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: expires
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: signature
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Konten foto bukti
+        '403':
+          description: INVALID_SIGNATURE — URL tidak bertanda tangan atau kedaluwarsa

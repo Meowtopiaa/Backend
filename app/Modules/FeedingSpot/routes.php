@@ -49,7 +49,7 @@ Route::get('/admin/feeding/evidence/{mediaId}/file', [AdminFeedingSpotController
 // Memakai permission spot.manage dan feeding.review (bukan pengecekan string role).
 // Tidak ada DELETE spot: menonaktifkan spot dilakukan dengan PATCH status menjadi INACTIVE.
 Route::prefix('admin/feeding')->middleware('auth:sanctum')->group(function () {
-    // Kelola Spot & QR (Permission: spot.manage) (AFS-01, Bagian 8.4, MEOW-7, MEOW-21, MEOW-23)
+    // Kelola Spot & QR (Permission: spot.manage) (AFS-01, Bagian 8.4, MEOW-7, MEOW-21, MEOW-23, MEOW-29, MEOW-30)
     Route::middleware('can:spot.manage')->group(function () {
         Route::get('/spots', [AdminFeedingSpotController::class, 'indexSpots']);
         Route::get('/spots/qr-sheet', [AdminFeedingSpotController::class, 'printAllQrSheets'])->name('admin.feeding.spots.qr-sheet.all');
@@ -63,11 +63,15 @@ Route::prefix('admin/feeding')->middleware('auth:sanctum')->group(function () {
         Route::get('/spots/{id}/cats', [AdminFeedingSpotController::class, 'getSpotCats']);
         Route::post('/spots/{id}/cats', [AdminFeedingSpotController::class, 'attachCats']);
         Route::delete('/spots/{id}/cats/{catId}', [AdminFeedingSpotController::class, 'detachCat']);
+        Route::get('/settings', [AdminFeedingSpotController::class, 'getSettings']);
+        Route::put('/settings', [AdminFeedingSpotController::class, 'updateSettings']);
+        Route::get('/spot-histories', [AdminFeedingSpotController::class, 'spotHistories']);
     });
 
-    // Antrean Review & Keputusan Reviewer (Permission: feeding.review) (MEOW-12, MEOW-22)
+    // Antrean Review & Keputusan Reviewer (Permission: feeding.review) (MEOW-12, MEOW-22, MEOW-30)
     Route::middleware('can:feeding.review')->group(function () {
         Route::get('/review-queue', [AdminFeedingSpotController::class, 'reviewQueue']);
+        Route::get('/review-histories', [AdminFeedingSpotController::class, 'reviewHistories']);
         Route::get('/reviews/{id}', [AdminFeedingSpotController::class, 'showReviewEvidence'])->name('admin.feeding.reviews.show');
         Route::post('/activities/{id}/review', [AdminFeedingSpotController::class, 'reviewActivity']);
     });

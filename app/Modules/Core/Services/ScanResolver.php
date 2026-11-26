@@ -36,8 +36,8 @@ class ScanResolver
         }
 
         // 2. Manual Backup Code Fallback
-        // Check if matches cat unique_code
-        $cat = Cat::where('unique_code', $code)->first();
+        // Check if matches cat unique_code (case-insensitive)
+        $cat = Cat::whereRaw('UPPER(unique_code) = ?', [strtoupper($code)])->first();
         if ($cat) {
             return [
                 'type' => 'cat',
@@ -93,6 +93,17 @@ class ScanResolver
 
     protected function resolveSpotByQrToken(string $token): array
     {
+        if (\Illuminate\Support\Facades\Schema::hasTable('feeding_spot_qr_tokens')) {
+            $revoked = DB::table('feeding_spot_qr_tokens')
+                ->where('token', $token)
+                ->where('status', 'REVOKED')
+                ->exists();
+
+            if ($revoked) {
+                throw new BadRequestHttpException("QR_REVOKED: Stiker QR spot pakan ini telah dicabut/diganti. Gunakan stiker terbaru atau kode manual spot.");
+            }
+        }
+
         $spot = DB::table('feeding_spots')
             ->where('qr_token', $token)
             ->first();

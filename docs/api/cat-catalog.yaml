@@ -1,0 +1,229 @@
+openapi: 3.0.3
+info:
+  title: Meowtopia Master Cat Catalog API
+  version: 1.1.0
+  description: |
+    Kontrak resmi Master Data Katalog Kucing (`cats` single source of truth) pada Meowtopia Backend (`/api/v1`).
+    Menyediakan kebutuhan data lintas-modul tanpa membuat tabel kucing duplikat (PRD v1.1 & AGENTS.md Aturan Keras #1):
+    - **Enigma (CatAdoption):** `name`, `gender`, `primary_color`, `fur_pattern`, `color_pattern`, `age_group`, `is_sterilized`, `description`, `photo_url`/`photos`, `adoption_status`, `health_status`, `is_vaccinated`, `vaccinated_at`, `vaccination_notes`, `temperament`, `special_needs`.
+    - **Game (CatHunter / SUPER-SUB):** `id` (ULID), `unique_code` & QR `MTP1.C.<token>` (via `/scan/resolve`), `name`, `primary_color`, `fur_pattern`, `color_pattern`, `traits` (ciri fisik: `physical_marks`, `ear_tip`, `tail_type`, `eye_color`), `territory`, `photo_url`, `game_rarity` (diambil dari tabel satelit `game_cat_profiles.rarity`).
+    - **Rekans Caps (CatIdentification):** `id`, `unique_code` & QR `MTP1.C.<token>`, `name`, `photo_url`/`photos`, `primary_color`, `fur_pattern`, `gender`, `territory`, `health_status`, `is_sterilized`, `is_vaccinated`.
+    - **Optimind (IncidentReport):** `id`, `name`, `health_status`, `presence_status`.
+
+    **Aturan Privasi & Integritas:**
+    - Endpoint publik tidak pernah mengembalikan token QR mentah (`qr_payload`) maupun koordinat GPS presisi.
+    - Perubahan `presence_status`, `health_status`, dan `adoption_status` wajib melalui `CatStatusService::change()` dan dicatat di `cat_status_logs`.
+
+servers:
+  - url: /api/v1
+    description: Laravel REST API Gateway v1
+
+components:
+  securitySchemes:
+    sanctumAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: SanctumToken
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+      description: Kunci unik klien untuk mencegah duplikasi pembuatan data kucing.
+  schemas:
+    TerritorySummary:
+      type: object
+      nullable: true
+      properties:
+        id: { type: string, example: 01JCAT00000000000000000001 }
+        code: { type: string, example: TULT }
+        name: { type: string, example: Telkom University Landmark Tower (TULT) }
+    CatPhotoItem:
+      type: object
+      properties:
+        id: { type: string }
+        media_id: { type: string }
+        angle: { type: string, nullable: true, enum: [front, left, right, tail, face] }
+        sort_order: { type: integer }
+        url: { type: string, example: /api/v1/cats/01J.../photos/01M... }
+    CatPublic:
+      type: object
+      properties:
+        id: { type: string, description: ULID 26 karakter }
+        unique_code: { type: string, example: CAT001 }
+        name: { type: string, example: Mochi }
+        gender: { type: string, enum: [MALE, FEMALE, UNKNOWN] }
+        primary_color: { type: string, nullable: true, example: Oranye Putih }
+        fur_pattern: { type: string, nullable: true, example: Calico }
+        color_pattern: { type: string, nullable: true, example: Oranye Putih Calico }
+        age_group: { type: string, enum: [KITTEN, ADULT, SENIOR, UNKNOWN] }
+        is_sterilized: { type: boolean, nullable: true }
+        is_vaccinated: { type: boolean, nullable: true }
+        vaccinated_at: { type: string, format: date, nullable: true }
+        vaccination_notes: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        temperament: { type: string, nullable: true, example: Ramah dan tenang }
+        special_needs: { type: string, nullable: true, example: Sensitif ikan laut }
+        traits:
+          type: object
+          properties:
+            physical_marks: { type: string, nullable: true }
+            ear_tip: { type: string, nullable: true }
+            tail_type: { type: string, nullable: true }
+            eye_color: { type: string, nullable: true }
+        territory_id: { type: string, nullable: true }
+        territory: { $ref: '#/components/schemas/TerritorySummary' }
+        primary_photo_media_id: { type: string, nullable: true }
+        photo_url: { type: string, nullable: true }
+        photos:
+          type: array
+          items: { $ref: '#/components/schemas/CatPhotoItem' }
+        presence_status: { type: string, enum: [ON_CAMPUS, ADOPTED, MISSING, DECEASED] }
+        health_status: { type: string, enum: [HEALTHY, SICK, INJURED, UNDER_CARE] }
+        adoption_status: { type: string, enum: [UNREVIEWED, READY, ADOPTED, RETURN_PENDING, RETURNED_REVIEW] }
+        verification_status: { type: string, enum: [UNVERIFIED, VERIFIED] }
+        game_rarity: { type: string, nullable: true, enum: [COMMON, RARE, EPIC], description: Diambil dari game_cat_profiles }
+        first_seen_at: { type: string, format: date-time, nullable: true }
+        last_seen_at: { type: string, format: date-time, nullable: true }
+    CatAdminDetail:
+      allOf:
+        - $ref: '#/components/schemas/CatPublic'
+        - type: object
+          properties:
+            qr_status: { type: string, enum: [ACTIVE, REVOKED, NONE] }
+            qr_payload: { type: string, nullable: true, example: MTP1.C.abc123...32chars }
+            qr_issued_at: { type: string, format: date-time, nullable: true }
+            deleted_at: { type: string, format: date-time, nullable: true }
+
+paths:
+  /cats:
+    get:
+      summary: Daftar katalog kucing publik dengan filter lintas-modul
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: search, in: query, schema: { type: string }, description: Cari nama, unique_code, warna, pola, atau sifat }
+        - { name: gender, in: query, schema: { type: string, enum: [MALE, FEMALE, UNKNOWN] } }
+        - { name: age_group, in: query, schema: { type: string, enum: [KITTEN, ADULT, SENIOR, UNKNOWN] } }
+        - { name: presence_status, in: query, schema: { type: string, enum: [ON_CAMPUS, ADOPTED, MISSING, DECEASED] } }
+        - { name: health_status, in: query, schema: { type: string, enum: [HEALTHY, SICK, INJURED, UNDER_CARE] } }
+        - { name: adoption_status, in: query, schema: { type: string, enum: [UNREVIEWED, READY, ADOPTED, RETURN_PENDING, RETURNED_REVIEW] } }
+        - { name: territory_id, in: query, schema: { type: string } }
+        - { name: is_sterilized, in: query, schema: { type: boolean } }
+        - { name: is_vaccinated, in: query, schema: { type: boolean } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 15 } }
+      responses:
+        '200':
+          description: Daftar kucing publik (tanpa token QR mentah & koordinat presisi)
+
+  /cats/{id}:
+    get:
+      summary: Detail profil publik kucing berdasarkan ULID
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Profil kucing ditemukan }
+        '404': { description: Kucing tidak ditemukan }
+
+  /cats/by-code/{unique_code}:
+    get:
+      summary: Cari kucing berdasarkan kode kalung cadangan (case-insensitive)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: unique_code, in: path, required: true, schema: { type: string, example: CAT001 } }
+      responses:
+        '200': { description: Kucing ditemukan }
+        '404': { description: Kucing tidak ditemukan }
+
+  /cats/{id}/photos/{mediaId}:
+    get:
+      summary: Stream berkas foto referensi publik kucing (`cat_photo`)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: mediaId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Stream gambar referensi }
+        '404': { description: Foto tidak ditemukan }
+
+  /admin/cats:
+    get:
+      summary: Daftar katalog kucing untuk Admin / Data Curator (permission cat.edit)
+      security: [{ sanctumAuth: [] }]
+      responses:
+        '200': { description: Daftar kucing admin beserta status QR }
+        '403': { description: Tidak memiliki izin cat.edit }
+    post:
+      summary: Tambah kucing baru & otomatis buat QR kalung aktif MTP1.C.<token>
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '201': { description: Kucing dan QR kalung berhasil dibuat }
+        '403': { description: Akses ditolak }
+        '422': { description: Validasi gagal }
+
+  /admin/cats/{id}:
+    get:
+      summary: Detail lengkap kucing admin (termasuk QR aktif & status_logs)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Detail kucing admin }
+        '404': { description: Tidak ditemukan }
+    put:
+      summary: Perbarui profil kucing (status dimensi diubah lewat CatStatusService::change)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Profil kucing diperbarui }
+        '409': { description: Transisi status tidak valid }
+        '422': { description: Validasi gagal }
+    delete:
+      summary: Nonaktifkan (soft delete) kucing tanpa menghapus riwayat/ledger
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Kucing dinonaktifkan }
+
+  /admin/cats/{id}/restore:
+    post:
+      summary: Pulihkan kucing yang dinonaktifkan (soft delete)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Kucing berhasil dipulihkan }
+
+  /admin/cats/{id}/photos:
+    post:
+      summary: Unggah foto referensi kucing (`cat_photo`, maks 5 MB)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '201': { description: Foto berhasil diunggah }
+
+  /admin/cats/{id}/qr/regenerate:
+    post:
+      summary: Cabut token QR lama (REVOKED) dan terbitkan token baru (permission cat.qr.regenerate)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Token QR baru diterbitkan }
+        '403': { description: Tidak memiliki izin cat.qr.regenerate }
+
+  /admin/cats/{id}/qr-download:
+    get:
+      summary: Unduh aset QR kalung (format acrylic_front, acrylic_back, svg, atau png)
+      security: [{ sanctumAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: format, in: query, schema: { type: string, enum: [acrylic_front, acrylic_back, svg, png], default: acrylic_front } }
+      responses:
+        '200': { description: Berkas SVG atau PNG siap cetak }
