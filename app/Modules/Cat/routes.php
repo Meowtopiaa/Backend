@@ -5,6 +5,9 @@ use App\Modules\Cat\Controllers\CatController;
 use App\Modules\Core\Middleware\RequireIdempotencyKey;
 
 Route::prefix('cats')->group(function () {
+    // Public cat reference photo stream (safe non-PII cat_photo only)
+    Route::get('/{id}/photos/{mediaId}', [CatController::class, 'servePhoto'])->name('cats.photo');
+
     Route::middleware('auth:sanctum')->group(function () {
         // List with filters & pagination
         Route::get('/', [CatController::class, 'index']);
