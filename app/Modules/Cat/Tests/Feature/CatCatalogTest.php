@@ -395,6 +395,32 @@ class CatCatalogTest extends TestCase
         $cat = Cat::where('name', 'Comel')->firstOrFail();
         $this->assertNotNull(CatQrToken::where('cat_id', $cat->id)->where('status', 'ACTIVE')->first());
 
+        // Halaman katalog menampilkan tombol Detail + pagination 10 per halaman + search by ID
+        for ($i = 1; $i <= 11; $i++) {
+            Cat::create([
+                'unique_code' => 'PAG' . str_pad((string) $i, 3, '0', STR_PAD_LEFT),
+                'name' => 'Kucing Page ' . $i,
+                'gender' => 'MALE',
+                'age_group' => 'ADULT',
+                'presence_status' => 'ON_CAMPUS',
+                'health_status' => 'HEALTHY',
+                'adoption_status' => 'UNREVIEWED',
+            ]);
+        }
+
+        $this->actingAs($superAdmin, 'web')
+            ->get('/admin/cats')
+            ->assertOk()
+            ->assertSee('Detail')
+            ->assertSee('10 per halaman')
+            ->assertSee('Berikutnya');
+
+        // Search berdasarkan ULID id kucing
+        $this->actingAs($superAdmin, 'web')
+            ->get('/admin/cats?search=' . $cat->id)
+            ->assertOk()
+            ->assertSee('Comel');
+
         // Halaman cetak Tag QR Akrilik Depan-Belakang siap print
         $this->actingAs($superAdmin, 'web')
             ->get("/admin/cats/{$cat->id}/qr-sheet")

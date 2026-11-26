@@ -46,7 +46,12 @@ class AdminCatWebController extends Controller
         if ($filters['include_deleted']) {
             $query->withTrashed();
         }
-        foreach (['health_status', 'adoption_status', 'presence_status'] as $enumField) {
+        if ($filters['health_status'] === 'NEEDS_CARE') {
+            $query->whereIn('health_status', ['SICK', 'INJURED', 'UNDER_CARE']);
+        } elseif ($filters['health_status'] !== '') {
+            $query->where('health_status', $filters['health_status']);
+        }
+        foreach (['adoption_status', 'presence_status'] as $enumField) {
             if ($filters[$enumField] !== '') {
                 $query->where($enumField, $filters[$enumField]);
             }
@@ -63,7 +68,8 @@ class AdminCatWebController extends Controller
         if ($filters['search'] !== '') {
             $like = '%' . $filters['search'] . '%';
             $query->where(function ($q) use ($like) {
-                $q->where('name', 'like', $like)
+                $q->where('id', 'like', $like)
+                    ->orWhere('name', 'like', $like)
                     ->orWhere('unique_code', 'like', $like)
                     ->orWhere('color_pattern', 'like', $like)
                     ->orWhere('primary_color', 'like', $like)
@@ -72,15 +78,16 @@ class AdminCatWebController extends Controller
             });
         }
 
-        $cats = $query->orderByDesc('created_at')->orderBy('name')->get();
-        $rarities = $this->presenter->loadGameRarities($cats->pluck('id')->all());
+        $cats = $query->orderByDesc('created_at')->orderBy('name')->paginate(10)->withQueryString();
+        $pageCats = $cats->getCollection();
+        $rarities = $this->presenter->loadGameRarities($pageCats->pluck('id')->all());
 
-        // Pastikan setiap kucing aktif punya token QR agar pratinjau akrilik selalu siap
+        // Pastikan setiap kucing aktif pada halaman ini punya token QR agar pratinjau akrilik selalu siap
         $qrPreviewMap = [];
         $logoDataUri = $this->resolveLogoDataUri();
         $backAcrylicSvg = $this->qrCodeService->renderAcrylicBackSvg($logoDataUri, true);
 
-        foreach ($cats as $cat) {
+        foreach ($pageCats as $cat) {
             $token = $cat->activeQrToken;
             if (!$token && !$cat->trashed()) {
                 $token = $this->catService->ensureActiveQrToken($cat, $user);

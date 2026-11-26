@@ -6,10 +6,10 @@
     <title>Meowtopia Admin — Katalog Kucing</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-page: #F4F6F9;
+            --bg-page: #EEF3F9;
             --surface: #FFFFFF;
             --surface-subtle: #F8FAFC;
             --border: #E2E8F0;
@@ -19,13 +19,15 @@
             --text-secondary: #475569;
             --text-muted: #64748B;
 
-            --sidebar-navy: #0B192C;
-            --sidebar-navy-hover: #152B4A;
-            --sidebar-navy-border: #1C3559;
-            --sidebar-text: #D5E2F2;
-            --sidebar-text-muted: #8AA4C8;
-            --sidebar-w: 248px;
-            --sidebar-collapsed-w: 76px;
+            --sidebar-navy: #0F2442;
+            --sidebar-navy-deep: #0B192C;
+            --sidebar-navy-hover: rgba(255, 255, 255, 0.10);
+            --sidebar-border: rgba(255, 255, 255, 0.12);
+            --sidebar-text: #D7E4F5;
+            --sidebar-text-muted: #8FA8C8;
+            --sidebar-w: 256px;
+            --sidebar-collapsed-w: 84px;
+            --sidebar-gap: 14px;
 
             --primary: #EA580C;
             --primary-hover: #C2410C;
@@ -33,14 +35,17 @@
             --edit-bg: #EFF6FF;
             --edit-border: #BFDBFE;
             --success: #15803D;
-            --success-bg: #F0FDF4;
-            --success-border: #BBF7D0;
+            --success-bg: #ECFDF5;
+            --success-border: #A7F3D0;
             --warning: #B45309;
             --warning-bg: #FFFBEB;
             --warning-border: #FDE68A;
             --danger: #DC2626;
             --danger-bg: #FEF2F2;
             --danger-border: #FECACA;
+
+            --radius-bento: 20px;
+            --shadow-bento: 0 4px 24px rgba(15, 36, 66, 0.05);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,61 +61,62 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ================= SIDEBAR (SHARED VISUAL SYSTEM WITH /admin/feeding) ================= */
+        /* ================= FLOATING ROUNDED BENTO SIDEBAR ================= */
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--sidebar-navy);
+            background: linear-gradient(180deg, #132C52 0%, var(--sidebar-navy-deep) 100%);
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            top: var(--sidebar-gap);
+            left: var(--sidebar-gap);
+            bottom: var(--sidebar-gap);
             z-index: 60;
-            border-right: 1px solid var(--sidebar-navy-border);
+            border-radius: 22px;
+            box-shadow: 0 14px 36px rgba(11, 25, 44, 0.18);
             transition: width 0.24s cubic-bezier(0.4, 0, 0.2, 1), transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: visible;
         }
 
         .sidebar-edge-toggle {
             position: fixed;
-            top: 21px;
-            left: var(--sidebar-w);
+            top: 34px;
+            left: calc(var(--sidebar-w) + var(--sidebar-gap) - 11px);
             z-index: 65;
-            width: 22px;
-            height: 34px;
-            background: var(--sidebar-navy);
-            color: #FFFFFF;
-            border: 1px solid var(--sidebar-navy-border);
-            border-left: none;
-            border-radius: 0 6px 6px 0;
+            width: 24px;
+            height: 24px;
+            background: #FFFFFF;
+            color: var(--sidebar-navy);
+            border: 1px solid var(--border);
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
             transition: left 0.24s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease;
             user-select: none;
         }
-        .sidebar-edge-toggle:hover { background: var(--sidebar-navy-hover); }
+        .sidebar-edge-toggle:hover { background: #F8FAFC; }
 
         .sidebar-brand {
-            padding: 18px 19px;
-            border-bottom: 1px solid var(--sidebar-navy-border);
+            padding: 20px 18px 16px;
+            border-bottom: 1px solid var(--sidebar-border);
             display: flex;
             align-items: center;
             gap: 12px;
-            min-height: 75px;
         }
         .sidebar-logo {
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             object-fit: cover;
             flex-shrink: 0;
             background: #FFFFFF;
-            border: 1.5px solid rgba(255, 255, 255, 0.22);
+            border: 2px solid rgba(255, 255, 255, 0.25);
         }
         .sidebar-brand-text {
             display: flex;
@@ -120,11 +126,11 @@
             white-space: nowrap;
         }
         .sidebar-brand-title {
-            font-size: 14.5px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.03em;
             color: #FFFFFF;
-            line-height: 1.25;
+            line-height: 1.2;
         }
         .sidebar-brand-sub {
             font-size: 11px;
@@ -139,15 +145,16 @@
             flex-direction: column;
             gap: 4px;
             flex: 1;
+            overflow-y: auto;
         }
 
         .nav-section-label {
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--sidebar-text-muted);
-            padding: 12px 10px 4px;
+            padding: 12px 12px 4px;
             white-space: nowrap;
             overflow: hidden;
         }
@@ -159,9 +166,9 @@
             gap: 10px;
             width: 100%;
             min-height: 42px;
-            padding: 9px 11px;
+            padding: 9px 13px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             background: transparent;
             color: var(--sidebar-text);
             font-family: inherit;
@@ -169,10 +176,15 @@
             font-weight: 500;
             text-decoration: none;
             cursor: pointer;
-            transition: background 0.15s ease, color 0.15s ease;
+            transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
         }
         .nav-item:hover { background: var(--sidebar-navy-hover); color: #FFFFFF; }
-        .nav-item.active { background: var(--primary); color: #FFFFFF; font-weight: 600; }
+        .nav-item.active {
+            background: #FFFFFF;
+            color: var(--sidebar-navy);
+            font-weight: 700;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
 
         .nav-item-label {
             display: flex;
@@ -190,83 +202,217 @@
         }
         .nav-count {
             font-size: 11px;
-            font-weight: 600;
-            padding: 2px 7px;
+            font-weight: 700;
+            padding: 2px 8px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.14);
             color: #FFFFFF;
             flex-shrink: 0;
         }
-        .nav-item.active .nav-count { background: rgba(255, 255, 255, 0.24); }
+        .nav-item.active .nav-count {
+            background: #FFF7ED;
+            color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 14px 12px 16px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            min-width: 0;
+        }
+        .sidebar-user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .sidebar-user-info {
+            min-width: 0;
+            overflow: hidden;
+        }
+        .sidebar-user-name {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #FFFFFF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-user-role {
+            font-size: 11px;
+            color: var(--sidebar-text-muted);
+        }
+        .sidebar-logout-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: transparent;
+            color: var(--sidebar-text);
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .sidebar-logout-btn:hover { background: rgba(255, 255, 255, 0.12); color: #FFFFFF; }
 
         body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-w); }
-        body.sidebar-collapsed .sidebar-edge-toggle { left: var(--sidebar-collapsed-w); }
+        body.sidebar-collapsed .sidebar-edge-toggle { left: calc(var(--sidebar-collapsed-w) + var(--sidebar-gap) - 11px); }
         body.sidebar-collapsed .sidebar-brand-text,
         body.sidebar-collapsed .nav-item-text,
         body.sidebar-collapsed .nav-count,
-        body.sidebar-collapsed .nav-section-label { display: none; }
-        body.sidebar-collapsed .sidebar-brand { justify-content: center; padding: 18px 0; }
+        body.sidebar-collapsed .nav-section-label,
+        body.sidebar-collapsed .sidebar-user-info,
+        body.sidebar-collapsed .logout-text { display: none; }
+        body.sidebar-collapsed .sidebar-brand,
+        body.sidebar-collapsed .sidebar-user { justify-content: center; padding-left: 0; padding-right: 0; }
         body.sidebar-collapsed .nav-item { justify-content: center; padding: 10px 0; }
 
-        /* ================= MAIN LAYOUT ================= */
+        /* ================= CENTERED MAIN AREA ================= */
         .main-wrapper {
-            margin-left: var(--sidebar-w);
+            margin-left: calc(var(--sidebar-w) + (var(--sidebar-gap) * 2));
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
             transition: margin-left 0.24s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        body.sidebar-collapsed .main-wrapper { margin-left: var(--sidebar-collapsed-w); }
-
-        .topbar {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 15px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            min-height: 68px;
-        }
-        .topbar-left { display: flex; flex-direction: column; gap: 2px; }
-        .topbar-title {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--text-primary);
-        }
-        .topbar-sub {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .topbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+        body.sidebar-collapsed .main-wrapper {
+            margin-left: calc(var(--sidebar-collapsed-w) + (var(--sidebar-gap) * 2));
         }
 
         .page-content {
-            padding: 22px 28px 40px;
-            max-width: 1440px;
+            max-width: 1220px;
             width: 100%;
+            margin: 0 auto;
+            padding: 18px 24px 48px;
+        }
+
+        /* ================= TOPBAR PILL BAR ================= */
+        .top-pill-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .breadcrumb-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        }
+        .breadcrumb-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+        .top-pill-meta {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* ================= BENTO HERO HEADER CARD ================= */
+        .bento-hero {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 58%, #FFEDD5 100%);
+            border: 1px solid #FED7AA;
+            border-radius: var(--radius-bento);
+            padding: 24px 28px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-bento);
+        }
+        .bento-hero-watermark {
+            position: absolute;
+            right: 26%;
+            bottom: -24px;
+            width: 150px;
+            height: 150px;
+            color: #FB923C;
+            opacity: 0.14;
+            pointer-events: none;
+            transform: rotate(-14deg);
+        }
+        .bento-hero-left { position: relative; z-index: 2; max-width: 640px; }
+        .bento-hero-kicker {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .bento-hero-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: var(--text-primary);
+            line-height: 1.25;
+        }
+        .bento-hero-sub {
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+        .bento-hero-actions {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         /* ================= ALERTS ================= */
         .alert {
-            padding: 12px 16px;
-            border-radius: 10px;
+            padding: 13px 18px;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             font-size: 13.5px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
         }
         .alert-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
         .alert-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
@@ -281,39 +427,105 @@
         }
         .alert-close:hover { opacity: 1; }
 
-        /* ================= STATS STRIP ================= */
+        /* ================= BENTO STAT CARDS WITH TRANSLUCENT PAW WATERMARKS ================= */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 18px;
         }
+
         .stat-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            padding: 16px 18px 18px;
             text-decoration: none;
             color: inherit;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            transition: border-color 0.15s ease, transform 0.15s ease;
+            gap: 10px;
+            border: 1px solid transparent;
+            box-shadow: var(--shadow-bento);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
-        .stat-item:hover { border-color: var(--border-strong); transform: translateY(-1px); }
-        .stat-item.active { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-        .stat-label { font-size: 12px; font-weight: 500; color: var(--text-muted); }
-        .stat-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(15, 36, 66, 0.09);
+        }
+        .stat-item.active {
+            box-shadow: 0 0 0 2px var(--primary), 0 8px 20px rgba(234, 88, 12, 0.12);
+        }
 
-        /* ================= PANEL & TOOLBAR ================= */
+        .stat-card-orange { background: linear-gradient(145deg, #FFFFFF 0%, #FFF3E6 100%); border-color: #FED7AA; --card-accent: #EA580C; --chip-bg: #FFEDD5; }
+        .stat-card-green  { background: linear-gradient(145deg, #FFFFFF 0%, #E8FBF1 100%); border-color: #A7F3D0; --card-accent: #15803D; --chip-bg: #DCFCE7; }
+        .stat-card-rose   { background: linear-gradient(145deg, #FFFFFF 0%, #FFF0F1 100%); border-color: #FECDD3; --card-accent: #E11D48; --chip-bg: #FFE4E6; }
+        .stat-card-blue   { background: linear-gradient(145deg, #FFFFFF 0%, #EAF3FF 100%); border-color: #BFDBFE; --card-accent: #1D4ED8; --chip-bg: #DBEAFE; }
+        .stat-card-violet { background: linear-gradient(145deg, #FFFFFF 0%, #F3EEFF 100%); border-color: #DDD6FE; --card-accent: #6D28D9; --chip-bg: #EDE9FE; }
+
+        .stat-top {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .stat-icon-chip {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--chip-bg);
+            color: var(--card-accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-icon-chip svg { width: 18px; height: 18px; }
+
+        .stat-body { position: relative; z-index: 2; }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat-label {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .stat-watermark {
+            position: absolute;
+            right: -10px;
+            bottom: -14px;
+            width: 78px;
+            height: 78px;
+            color: var(--card-accent);
+            opacity: 0.32;
+            pointer-events: none;
+            transform: rotate(-16deg);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .stat-item:hover .stat-watermark {
+            opacity: 0.45;
+            transform: rotate(-10deg) scale(1.05);
+        }
+
+        /* ================= MAIN BENTO TABLE PANEL ================= */
         .panel {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: var(--radius-bento);
             overflow: hidden;
+            box-shadow: var(--shadow-bento);
         }
         .toolbar {
-            padding: 14px 18px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
@@ -334,20 +546,21 @@
             font-family: inherit;
             font-size: 13px;
             color: var(--text-primary);
-            background: var(--surface);
-            border: 1px solid var(--border-strong);
-            border-radius: 7px;
-            padding: 7px 11px;
-            height: 36px;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 7px 12px;
+            height: 38px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
         .textarea { height: auto; min-height: 76px; resize: vertical; line-height: 1.5; }
         .input:focus, .select:focus, .textarea:focus {
             outline: none;
+            background: var(--surface);
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
         }
-        .input-search { min-width: 230px; flex: 1; max-width: 320px; }
+        .input-search { min-width: 240px; flex: 1; max-width: 340px; }
 
         /* ================= BUTTONS ================= */
         .btn {
@@ -355,9 +568,9 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            height: 36px;
-            padding: 0 14px;
-            border-radius: 7px;
+            height: 38px;
+            padding: 0 16px;
+            border-radius: 10px;
             border: 1px solid transparent;
             font-family: inherit;
             font-size: 13px;
@@ -365,13 +578,15 @@
             text-decoration: none;
             cursor: pointer;
             white-space: nowrap;
-            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
         }
-        .btn-sm { height: 31px; padding: 0 10px; font-size: 12px; }
-        .btn-primary { background: var(--primary); color: #FFFFFF; }
+        .btn-sm { height: 32px; padding: 0 11px; font-size: 12px; border-radius: 8px; }
+        .btn-primary { background: var(--primary); color: #FFFFFF; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.22); }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-neutral { background: var(--surface); color: var(--text-primary); border-color: var(--border-strong); }
         .btn-neutral:hover { background: var(--surface-subtle); }
+        .btn-detail { background: #F1F5F9; color: var(--sidebar-navy); border-color: #CBD5E1; }
+        .btn-detail:hover { background: #E2E8F0; }
         .btn-edit { background: var(--edit-bg); color: var(--edit); border-color: var(--edit-border); }
         .btn-edit:hover { background: #DBEAFE; }
         .btn-danger { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
@@ -379,34 +594,34 @@
         .btn-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
         .btn-success:hover { background: #DCFCE7; }
 
-        /* ================= TABLE ================= */
+        /* ================= COMPACT SCANNABLE TABLE ================= */
         .table-wrap { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th {
-            font-size: 11.5px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             color: var(--text-muted);
             background: var(--surface-subtle);
-            padding: 11px 16px;
+            padding: 12px 18px;
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
         td {
-            padding: 13px 16px;
+            padding: 14px 18px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
         }
         tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover { background: #FAFBFD; }
-        tbody tr.is-deleted { opacity: 0.62; background: #F8FAFC; }
+        tbody tr:hover { background: #F9FBFD; }
+        tbody tr.is-deleted { opacity: 0.6; background: #F8FAFC; }
 
-        .cat-cell { display: flex; align-items: center; gap: 12px; min-width: 210px; }
+        .cat-cell { display: flex; align-items: center; gap: 12px; min-width: 200px; }
         .cat-thumb {
             width: 44px;
             height: 44px;
-            border-radius: 10px;
+            border-radius: 12px;
             object-fit: cover;
             border: 1px solid var(--border);
             flex-shrink: 0;
@@ -415,38 +630,28 @@
         .cat-avatar-fallback {
             width: 44px;
             height: 44px;
-            border-radius: 10px;
+            border-radius: 12px;
             background: #FFF7ED;
             border: 1px solid #FED7AA;
             color: #C2410C;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
         }
-        .cat-name { font-weight: 600; color: var(--text-primary); font-size: 14px; }
-        .cat-meta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; flex-wrap: wrap; }
-        .code-chip {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: var(--surface-subtle);
-            border: 1px solid var(--border);
-            padding: 1px 6px;
-            border-radius: 5px;
-        }
+        .cat-name { font-weight: 700; color: var(--text-primary); font-size: 14px; }
+        .cat-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
         /* ================= BADGES ================= */
         .badge-group { display: flex; flex-wrap: wrap; gap: 5px; }
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 2px 8px;
+            padding: 3px 9px;
             border-radius: 999px;
-            font-size: 11px;
+            font-size: 11.5px;
             font-weight: 600;
             border: 1px solid transparent;
             white-space: nowrap;
@@ -459,18 +664,61 @@
 
         .actions-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
+        /* ================= PAGINATION FOOTER ================= */
+        .pagination-bar {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--surface-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .pagination-info {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .pagination-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 11px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 12.5px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .page-btn:hover:not(.disabled):not(.active) { background: #F1F5F9; border-color: var(--border-strong); }
+        .page-btn.active { background: var(--sidebar-navy); color: #FFFFFF; border-color: var(--sidebar-navy); }
+        .page-btn.disabled { opacity: 0.45; pointer-events: none; }
+
         .empty-state {
             padding: 56px 24px;
             text-align: center;
             color: var(--text-muted);
         }
-        .empty-state-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
 
-        /* ================= MODAL ================= */
+        /* ================= MODALS ================= */
         .modal-backdrop {
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.52);
+            backdrop-filter: blur(2px);
             z-index: 120;
             display: none;
             align-items: center;
@@ -480,7 +728,7 @@
         .modal-backdrop.open { display: flex; }
         .modal-box {
             background: var(--surface);
-            border-radius: 14px;
+            border-radius: 20px;
             border: 1px solid var(--border);
             width: 100%;
             max-width: 780px;
@@ -488,25 +736,25 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22);
+            box-shadow: 0 28px 56px rgba(15, 23, 42, 0.24);
         }
         .modal-box.modal-qr { max-width: 820px; }
         .modal-header {
-            padding: 16px 22px;
+            padding: 18px 24px;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
         }
-        .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .modal-title { font-size: 16.5px; font-weight: 700; color: var(--text-primary); }
         .modal-body {
-            padding: 20px 22px;
+            padding: 20px 24px;
             overflow-y: auto;
             flex: 1;
         }
         .modal-footer {
-            padding: 14px 22px;
+            padding: 14px 24px;
             border-top: 1px solid var(--border);
             background: var(--surface-subtle);
             display: flex;
@@ -516,6 +764,82 @@
             flex-wrap: wrap;
         }
 
+        /* ================= DETAIL MODAL BENTO LAYOUT ================= */
+        .detail-hero {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #F8FAFC 0%, #FFF7ED 100%);
+            border: 1px solid #FED7AA;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .detail-photo {
+            width: 68px;
+            height: 68px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            display: none;
+        }
+        .detail-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 16px;
+            background: #FFEDD5;
+            color: #C2410C;
+            font-size: 26px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .detail-id-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .id-pill {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 11.5px;
+            font-weight: 600;
+            background: #FFFFFF;
+            border: 1px solid var(--border-strong);
+            color: var(--text-secondary);
+            padding: 3px 9px;
+            border-radius: 7px;
+        }
+        .detail-bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .detail-card {
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+        .detail-card.span-2 { grid-column: span 2; }
+        .detail-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .kv-list { display: flex; flex-direction: column; gap: 7px; }
+        .kv-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+        .kv-key { color: var(--text-muted); flex-shrink: 0; }
+        .kv-val { color: var(--text-primary); font-weight: 600; text-align: right; }
+
+        /* ================= FORM SECTIONS ================= */
         .form-section {
             margin-bottom: 20px;
             padding-bottom: 18px;
@@ -523,18 +847,14 @@
         }
         .form-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
         .form-section-title {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.06em;
             color: var(--text-muted);
             margin-bottom: 12px;
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px 14px;
-        }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
         .form-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         .field { display: flex; flex-direction: column; gap: 5px; }
         .field.span-2 { grid-column: span 2; }
@@ -547,13 +867,13 @@
             gap: 14px;
             padding: 10px 12px;
             border: 1px dashed var(--border-strong);
-            border-radius: 9px;
+            border-radius: 12px;
             background: var(--surface-subtle);
         }
         .photo-preview-img {
             width: 56px;
             height: 56px;
-            border-radius: 8px;
+            border-radius: 10px;
             object-fit: cover;
             border: 1px solid var(--border);
             display: none;
@@ -567,15 +887,10 @@
             padding: 20px;
             background: #F8FAFC;
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 14px;
             margin-bottom: 16px;
         }
-        .acrylic-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
+        .acrylic-card { display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .acrylic-svg-frame {
             width: 100%;
             max-width: 260px;
@@ -597,23 +912,23 @@
             padding: 12px 14px;
             background: var(--surface-subtle);
             border: 1px solid var(--border);
-            border-radius: 9px;
+            border-radius: 10px;
             font-size: 12.5px;
         }
 
-        @media (max-width: 1080px) {
+        @media (max-width: 1120px) {
             .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
-        @media (max-width: 820px) {
-            .sidebar { transform: translateX(-100%); }
+        @media (max-width: 860px) {
+            .sidebar { top: 0; left: 0; bottom: 0; border-radius: 0 20px 20px 0; transform: translateX(-100%); }
             .sidebar.mobile-open { transform: translateX(0); }
-            .sidebar-edge-toggle { left: 0; }
-            .sidebar.mobile-open + .sidebar-edge-toggle { left: var(--sidebar-w); }
+            .sidebar-edge-toggle { left: 10px; top: 18px; }
+            .sidebar.mobile-open + .sidebar-edge-toggle { left: calc(var(--sidebar-w) - 12px); }
             .main-wrapper { margin-left: 0 !important; }
             .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .form-grid, .form-grid-3, .acrylic-stage { grid-template-columns: 1fr; }
-            .field.span-2 { grid-column: span 1; }
-            .page-content { padding: 16px 16px 32px; }
+            .form-grid, .form-grid-3, .acrylic-stage, .detail-bento-grid { grid-template-columns: 1fr; }
+            .field.span-2, .detail-card.span-2 { grid-column: span 1; }
+            .page-content { padding: 16px 14px 36px; }
         }
     </style>
 </head>
@@ -630,9 +945,10 @@
         'RETURNED_REVIEW' => 'Review Kembali',
     ];
     $presenceLabels = ['ON_CAMPUS' => 'Di Kampus', 'ADOPTED' => 'Diadopsi', 'MISSING' => 'Hilang', 'DECEASED' => 'Meninggal'];
+    $userInitial = strtoupper(mb_substr(auth()->user()->name ?? 'A', 0, 1));
 @endphp
 
-    <!-- UNIFIED DARK NAVY COLLAPSIBLE SIDEBAR -->
+    <!-- FLOATING ROUNDED BENTO SIDEBAR -->
     <aside class="sidebar" id="appSidebar">
         <div class="sidebar-brand" title="MEOWTOPIA — Admin Portal">
             <img src="/api/v1/feeding/assets/logo.jpg" alt="Meowtopia" class="sidebar-logo">
@@ -697,27 +1013,58 @@
             </a>
             @endif
         </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <span class="sidebar-user-avatar">{{ $userInitial }}</span>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
+                    <div class="sidebar-user-role">Administrator</div>
+                </div>
+            </div>
+            <form method="POST" action="/admin/feeding/logout">
+                @csrf
+                <button type="submit" class="sidebar-logout-btn" title="Keluar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span class="logout-text">Keluar</span>
+                </button>
+            </form>
+        </div>
     </aside>
 
     <button type="button" class="sidebar-edge-toggle" id="sidebarToggleBtn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-label="Toggle Sidebar">&lt;</button>
 
     <div class="main-wrapper">
-        <header class="topbar">
-            <div class="topbar-left">
-                <h1 class="topbar-title">Katalog Kucing</h1>
-                <div class="topbar-sub">Master data tunggal untuk Enigma, Game, Rekans Caps, dan Optimind · QR kalung otomatis</div>
-            </div>
-            <div class="topbar-actions">
-                <a href="/admin/cats/qr-sheet" target="_blank" class="btn btn-neutral btn-sm">Cetak Semua Tag Akrilik</a>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openCreateModal()">+ Tambah Kucing</button>
-                <form method="POST" action="/admin/feeding/logout" style="display:inline;">
-                    @csrf
-                    <button type="submit" class="btn btn-neutral btn-sm">Keluar ({{ auth()->user()->name }})</button>
-                </form>
-            </div>
-        </header>
-
         <main class="page-content">
+            <!-- TOP PILL BAR -->
+            <div class="top-pill-bar">
+                <div class="breadcrumb-pill">
+                    <span class="breadcrumb-dot"></span>
+                    <span>Katalog Kucing</span>
+                </div>
+                <div class="top-pill-meta">Master data tunggal &middot; Telkom University</div>
+            </div>
+
+            <!-- BENTO HERO BANNER -->
+            <section class="bento-hero">
+                <svg class="bento-hero-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <circle cx="7" cy="8.5" r="2.2"/>
+                    <circle cx="11.5" cy="5.5" r="2.2"/>
+                    <circle cx="16.5" cy="7.5" r="2.2"/>
+                    <circle cx="19" cy="12" r="2"/>
+                    <path d="M12.2 10.6c-3.4 0-6.2 2.9-6.2 5.7 0 2.1 1.6 3.5 3.6 3.5 1.1 0 1.9-.3 2.6-.3.8 0 1.6.3 2.7.3 2 0 3.5-1.4 3.5-3.5 0-2.9-2.8-5.7-6.2-5.7Z"/>
+                </svg>
+                <div class="bento-hero-left">
+                    <div class="bento-hero-kicker">Master Katalog Kucing</div>
+                    <h1 class="bento-hero-title">Kelola Data Kucing &amp; Tag QR Akrilik</h1>
+                    <p class="bento-hero-sub">Satu sumber data resmi untuk Enigma, Game, Rekans Caps, dan Optimind. QR kalung otomatis terbit setiap kucing baru ditambahkan.</p>
+                </div>
+                <div class="bento-hero-actions">
+                    <a href="/admin/cats/qr-sheet" target="_blank" class="btn btn-neutral">Cetak Semua Tag Akrilik</a>
+                    <button type="button" class="btn btn-primary" onclick="openCreateModal()">+ Tambah Kucing</button>
+                </div>
+            </section>
+
             @if(request()->filled('notice'))
                 <div class="alert alert-success">
                     <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -744,43 +1091,98 @@
                 </div>
             @endif
 
-            <!-- STATS STRIP -->
+            <!-- BENTO STAT CARDS WITH TRANSLUCENT PAW WATERMARKS -->
             <div class="stats-grid">
-                <a href="/admin/cats" class="stat-item {{ empty($filters['adoption_status']) && empty($filters['health_status']) && $filters['is_sterilized'] === '' && $filters['is_vaccinated'] === '' ? 'active' : '' }}">
-                    <span class="stat-label">Kucing Aktif</span>
-                    <span class="stat-value">{{ $stats['total'] }}</span>
+                <a href="/admin/cats" class="stat-item stat-card-orange {{ empty($filters['adoption_status']) && empty($filters['health_status']) && $filters['is_sterilized'] === '' && $filters['is_vaccinated'] === '' ? 'active' : '' }}">
+                    <div class="stat-top">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="7" cy="9" r="2"/><circle cx="11.5" cy="6" r="2"/><circle cx="16.5" cy="8" r="2"/><circle cx="19" cy="12.5" r="1.8"/><path d="M12.2 11c-3.1 0-5.7 2.6-5.7 5.2 0 1.9 1.4 3.3 3.3 3.3 1 0 1.7-.3 2.4-.3s1.5.3 2.5.3c1.8 0 3.2-1.4 3.2-3.3 0-2.6-2.6-5.2-5.7-5.2Z"/></svg>
+                        </span>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ $stats['total'] }}</div>
+                        <div class="stat-label">Kucing Aktif</div>
+                    </div>
+                    <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                    </svg>
                 </a>
-                <a href="/admin/cats?adoption_status=READY" class="stat-item {{ $filters['adoption_status'] === 'READY' ? 'active' : '' }}">
-                    <span class="stat-label">Siap Adopsi</span>
-                    <span class="stat-value">{{ $stats['ready_adoption'] }}</span>
+
+                <a href="/admin/cats?adoption_status=READY" class="stat-item stat-card-green {{ $filters['adoption_status'] === 'READY' ? 'active' : '' }}">
+                    <div class="stat-top">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        </span>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ $stats['ready_adoption'] }}</div>
+                        <div class="stat-label">Siap Adopsi</div>
+                    </div>
+                    <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                    </svg>
                 </a>
-                <a href="/admin/cats?health_status=UNDER_CARE" class="stat-item {{ in_array($filters['health_status'], ['SICK', 'INJURED', 'UNDER_CARE'], true) ? 'active' : '' }}">
-                    <span class="stat-label">Perlu Perawatan</span>
-                    <span class="stat-value">{{ $stats['needs_care'] }}</span>
+
+                <a href="/admin/cats?health_status=NEEDS_CARE" class="stat-item stat-card-rose {{ in_array($filters['health_status'], ['NEEDS_CARE', 'SICK', 'INJURED', 'UNDER_CARE'], true) ? 'active' : '' }}">
+                    <div class="stat-top">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M6 12h12"/></svg>
+                        </span>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ $stats['needs_care'] }}</div>
+                        <div class="stat-label">Perlu Perawatan</div>
+                    </div>
+                    <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                    </svg>
                 </a>
-                <a href="/admin/cats?is_sterilized=1" class="stat-item {{ $filters['is_sterilized'] === '1' ? 'active' : '' }}">
-                    <span class="stat-label">Sudah Steril</span>
-                    <span class="stat-value">{{ $stats['sterilized'] }}</span>
+
+                <a href="/admin/cats?is_sterilized=1" class="stat-item stat-card-blue {{ $filters['is_sterilized'] === '1' ? 'active' : '' }}">
+                    <div class="stat-top">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                        </span>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ $stats['sterilized'] }}</div>
+                        <div class="stat-label">Sudah Steril</div>
+                    </div>
+                    <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                    </svg>
                 </a>
-                <a href="/admin/cats?is_vaccinated=1" class="stat-item {{ $filters['is_vaccinated'] === '1' ? 'active' : '' }}">
-                    <span class="stat-label">Sudah Vaksin</span>
-                    <span class="stat-value">{{ $stats['vaccinated'] }}</span>
+
+                <a href="/admin/cats?is_vaccinated=1" class="stat-item stat-card-violet {{ $filters['is_vaccinated'] === '1' ? 'active' : '' }}">
+                    <div class="stat-top">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/></svg>
+                        </span>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ $stats['vaccinated'] }}</div>
+                        <div class="stat-label">Sudah Vaksin</div>
+                    </div>
+                    <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                    </svg>
                 </a>
             </div>
 
-            <!-- CATALOG TABLE PANEL -->
+            <!-- MAIN BENTO TABLE PANEL (STREAMLINED 5 COLUMNS + PAGINATION 10/PAGE) -->
             <div class="panel">
                 <form method="GET" action="/admin/cats" class="toolbar">
                     <div class="filter-row">
-                        <input type="text" name="search" value="{{ $filters['search'] }}" placeholder="Cari nama, kode kalung, warna, pola..." class="input input-search">
+                        <input type="text" name="search" value="{{ $filters['search'] }}" placeholder="Cari nama, ID kucing, kode kalung, atau warna..." class="input input-search">
                         <select name="health_status" class="select" onchange="this.form.submit()">
-                            <option value="">Semua Kesehatan</option>
+                            <option value="">Kesehatan</option>
+                            <option value="NEEDS_CARE" {{ $filters['health_status'] === 'NEEDS_CARE' ? 'selected' : '' }}>Perlu Perawatan</option>
                             @foreach($healthLabels as $k => $v)
                                 <option value="{{ $k }}" {{ $filters['health_status'] === $k ? 'selected' : '' }}>{{ $v }}</option>
                             @endforeach
                         </select>
                         <select name="adoption_status" class="select" onchange="this.form.submit()">
-                            <option value="">Semua Adopsi</option>
+                            <option value="">Adopsi</option>
                             @foreach($adoptionLabels as $k => $v)
                                 <option value="{{ $k }}" {{ $filters['adoption_status'] === $k ? 'selected' : '' }}>{{ $v }}</option>
                             @endforeach
@@ -791,17 +1193,7 @@
                                 <option value="{{ $t->id }}" {{ $filters['territory_id'] === $t->id ? 'selected' : '' }}>{{ $t->code }} — {{ $t->name }}</option>
                             @endforeach
                         </select>
-                        <select name="is_sterilized" class="select" onchange="this.form.submit()">
-                            <option value="">Steril: Semua</option>
-                            <option value="1" {{ $filters['is_sterilized'] === '1' ? 'selected' : '' }}>Sudah Steril</option>
-                            <option value="0" {{ $filters['is_sterilized'] === '0' ? 'selected' : '' }}>Belum Steril</option>
-                        </select>
-                        <select name="is_vaccinated" class="select" onchange="this.form.submit()">
-                            <option value="">Vaksin: Semua</option>
-                            <option value="1" {{ $filters['is_vaccinated'] === '1' ? 'selected' : '' }}>Sudah Vaksin</option>
-                            <option value="0" {{ $filters['is_vaccinated'] === '0' ? 'selected' : '' }}>Belum Vaksin</option>
-                        </select>
-                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-secondary); cursor:pointer;">
+                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-secondary); cursor:pointer; padding-left:4px;">
                             <input type="checkbox" name="include_deleted" value="1" {{ $filters['include_deleted'] ? 'checked' : '' }} onchange="this.form.submit()">
                             Nonaktif ({{ $stats['inactive'] }})
                         </label>
@@ -826,11 +1218,10 @@
                             <thead>
                                 <tr>
                                     <th>Kucing</th>
-                                    <th>Warna, Pola &amp; Sifat</th>
-                                    <th>Zona &amp; Rarity</th>
-                                    <th>Kesehatan, Steril &amp; Vaksin</th>
-                                    <th>Status Adopsi &amp; Lokasi</th>
-                                    <th style="width:230px;">Aksi</th>
+                                    <th>Zona</th>
+                                    <th>Kesehatan</th>
+                                    <th>Adopsi</th>
+                                    <th style="width:270px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -839,7 +1230,6 @@
                                         $photoUrl = $cat->primary_photo_media_id
                                             ? route('cats.photo', ['id' => $cat->id, 'mediaId' => $cat->primary_photo_media_id], false)
                                             : null;
-                                        $colorSummary = trim(($cat->primary_color ?? '') . ' ' . ($cat->fur_pattern ?? '')) ?: ($cat->color_pattern ?: '—');
                                         $gameRarity = $rarities[$cat->id] ?? null;
                                         $healthBadge = match($cat->health_status) {
                                             'HEALTHY' => 'badge-success',
@@ -857,10 +1247,12 @@
                                             'unique_code' => $cat->unique_code,
                                             'name' => $cat->name,
                                             'gender' => $cat->gender,
+                                            'gender_label' => $genderLabels[$cat->gender] ?? $cat->gender,
                                             'age_group' => $cat->age_group,
-                                            'primary_color' => $cat->primary_color,
-                                            'fur_pattern' => $cat->fur_pattern,
-                                            'color_pattern' => $cat->color_pattern,
+                                            'age_label' => $ageLabels[$cat->age_group] ?? $cat->age_group,
+                                            'primary_color' => $cat->primary_color ?? '',
+                                            'fur_pattern' => $cat->fur_pattern ?? '',
+                                            'color_pattern' => $cat->color_pattern ?? '',
                                             'is_sterilized' => $cat->is_sterilized === null ? '' : ($cat->is_sterilized ? '1' : '0'),
                                             'is_vaccinated' => $cat->is_vaccinated === null ? '' : ($cat->is_vaccinated ? '1' : '0'),
                                             'vaccinated_at' => $cat->vaccinated_at?->toDateString() ?? '',
@@ -869,11 +1261,18 @@
                                             'special_needs' => $cat->special_needs ?? '',
                                             'description' => $cat->description ?? '',
                                             'territory_id' => $cat->territory_id ?? '',
+                                            'territory_name' => $cat->territory ? ($cat->territory->code . ' — ' . $cat->territory->name) : 'Belum ditentukan',
+                                            'game_rarity' => $gameRarity ?? '—',
                                             'presence_status' => $cat->presence_status,
+                                            'presence_label' => $presenceLabels[$cat->presence_status] ?? $cat->presence_status,
                                             'health_status' => $cat->health_status,
+                                            'health_label' => $healthLabels[$cat->health_status] ?? $cat->health_status,
                                             'adoption_status' => $cat->adoption_status,
+                                            'adoption_label' => $adoptionLabels[$cat->adoption_status] ?? $cat->adoption_status,
                                             'traits' => $cat->traits ?? [],
                                             'photo_url' => $photoUrl,
+                                            'has_qr' => isset($qrPreviewMap[$cat->id]),
+                                            'trashed' => $cat->trashed(),
                                         ];
                                     @endphp
                                     <tr class="{{ $cat->trashed() ? 'is-deleted' : '' }}">
@@ -886,50 +1285,30 @@
                                                 @endif
                                                 <div>
                                                     <div class="cat-name">{{ $cat->name }}</div>
-                                                    <div class="cat-meta">
-                                                        <span class="code-chip">{{ $cat->unique_code }}</span>
-                                                        <span>{{ $genderLabels[$cat->gender] ?? $cat->gender }}</span>
-                                                        <span>&middot;</span>
-                                                        <span>{{ $ageLabels[$cat->age_group] ?? $cat->age_group }}</span>
-                                                    </div>
+                                                    <div class="cat-meta">{{ $genderLabels[$cat->gender] ?? $cat->gender }} &middot; {{ $ageLabels[$cat->age_group] ?? $cat->age_group }}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div style="font-weight:500; color:var(--text-primary);">{{ $colorSummary }}</div>
-                                            @if($cat->temperament)
-                                                <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Sifat: {{ $cat->temperament }}</div>
+                                            <span style="font-weight:500; color:var(--text-primary);">{{ $cat->territory?->code ?? '—' }}</span>
+                                            @if($cat->territory)
+                                                <div style="font-size:11.5px; color:var(--text-muted); max-width:210px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $cat->territory->name }}</div>
                                             @endif
-                                            @if($cat->special_needs)
-                                                <div style="font-size:11.5px; color:var(--warning); margin-top:2px;">Khusus: {{ mb_strimwidth($cat->special_needs, 0, 48, '…') }}</div>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div style="font-size:13px; color:var(--text-primary);">{{ $cat->territory?->name ?? 'Belum ditentukan' }}</div>
-                                            <div class="badge-group" style="margin-top:4px;">
-                                                @if($cat->territory)
-                                                    <span class="badge badge-neutral">{{ $cat->territory->code }}</span>
-                                                @endif
-                                                @if($gameRarity)
-                                                    <span class="badge badge-info">Rarity: {{ $gameRarity }}</span>
-                                                @endif
-                                            </div>
                                         </td>
                                         <td>
                                             <div class="badge-group">
                                                 <span class="badge {{ $healthBadge }}">{{ $healthLabels[$cat->health_status] ?? $cat->health_status }}</span>
-                                                <span class="badge {{ $cat->is_sterilized === true ? 'badge-success' : 'badge-neutral' }}">
-                                                    {{ $cat->is_sterilized === true ? 'Steril' : ($cat->is_sterilized === false ? 'Belum Steril' : 'Steril: ?') }}
-                                                </span>
-                                                <span class="badge {{ $cat->is_vaccinated === true ? 'badge-success' : 'badge-neutral' }}">
-                                                    {{ $cat->is_vaccinated === true ? 'Vaksin' : ($cat->is_vaccinated === false ? 'Belum Vaksin' : 'Vaksin: ?') }}
-                                                </span>
+                                                @if($cat->is_sterilized === true)
+                                                    <span class="badge badge-info">Steril</span>
+                                                @endif
+                                                @if($cat->is_vaccinated === true)
+                                                    <span class="badge badge-neutral">Vaksin</span>
+                                                @endif
                                             </div>
                                         </td>
                                         <td>
                                             <div class="badge-group">
                                                 <span class="badge {{ $adoptionBadge }}">{{ $adoptionLabels[$cat->adoption_status] ?? $cat->adoption_status }}</span>
-                                                <span class="badge badge-neutral">{{ $presenceLabels[$cat->presence_status] ?? $cat->presence_status }}</span>
                                                 @if($cat->trashed())
                                                     <span class="badge badge-danger">Nonaktif</span>
                                                 @endif
@@ -937,10 +1316,11 @@
                                         </td>
                                         <td>
                                             <div class="actions-cell">
+                                                <button type="button" class="btn btn-detail btn-sm" onclick='openDetailModal(@json($catJson))'>Detail</button>
                                                 @if(!$cat->trashed())
                                                     <button type="button" class="btn btn-edit btn-sm" onclick='openEditModal(@json($catJson))'>Edit</button>
                                                     @if(isset($qrPreviewMap[$cat->id]))
-                                                        <button type="button" class="btn btn-neutral btn-sm" onclick="openQrModal('{{ $cat->id }}', '{{ e($cat->name) }}', '{{ e($cat->unique_code) }}')">Tag Akrilik</button>
+                                                        <button type="button" class="btn btn-neutral btn-sm" onclick="openQrModal('{{ $cat->id }}', '{{ e($cat->name) }}', '{{ e($cat->unique_code) }}')">Tag QR</button>
                                                     @endif
                                                     <form method="POST" action="/admin/cats/{{ $cat->id }}/delete" onsubmit="return confirm('Nonaktifkan {{ e($cat->name) }} dari katalog aktif? Riwayat tetap tersimpan.');" style="display:inline;">
                                                         @csrf
@@ -960,16 +1340,111 @@
                         </table>
                     @endif
                 </div>
+
+                @if($cats->total() > 0)
+                <div class="pagination-bar">
+                    <div class="pagination-info">
+                        Menampilkan <strong>{{ $cats->firstItem() }}&ndash;{{ $cats->lastItem() }}</strong> dari <strong>{{ $cats->total() }}</strong> kucing (10 per halaman)
+                    </div>
+                    @if($cats->hasPages())
+                    <div class="pagination-links">
+                        <a href="{{ $cats->previousPageUrl() ?? '#' }}" class="page-btn {{ $cats->onFirstPage() ? 'disabled' : '' }}">&larr; Sebelumnya</a>
+                        @for($page = 1; $page <= $cats->lastPage(); $page++)
+                            <a href="{{ $cats->url($page) }}" class="page-btn {{ $cats->currentPage() === $page ? 'active' : '' }}">{{ $page }}</a>
+                        @endfor
+                        <a href="{{ $cats->nextPageUrl() ?? '#' }}" class="page-btn {{ !$cats->hasMorePages() ? 'disabled' : '' }}">Berikutnya &rarr;</a>
+                    </div>
+                    @endif
+                </div>
+                @endif
             </div>
         </main>
     </div>
 
-    <!-- HIDDEN QR SVG TEMPLATES PER CAT (FOR ZERO-LATENCY MODAL PREVIEW) -->
+    <!-- HIDDEN QR SVG TEMPLATES PER CAT ON CURRENT PAGE -->
     @foreach($qrPreviewMap as $catId => $qrData)
         <template id="qr-front-{{ $catId }}">{!! $qrData['front_svg'] !!}</template>
         <div id="qr-meta-{{ $catId }}" data-payload="{{ $qrData['payload'] }}" data-issued="{{ $qrData['issued_at'] }}" style="display:none;"></div>
     @endforeach
     <template id="qr-back-shared">{!! $backAcrylicSvg !!}</template>
+
+    <!-- MODAL DETAIL LENGKAP KUCING (ID & SEMUA ATRIBUT LINTAS-MODUL) -->
+    <div class="modal-backdrop" id="catDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailCatTitle">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title" id="detailCatTitle">Detail Lengkap Kucing</h2>
+                <button type="button" class="alert-close" onclick="closeModal('catDetailModal')" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-hero">
+                    <img id="d_photo" class="detail-photo" alt="Foto kucing">
+                    <span id="d_avatar" class="detail-avatar">M</span>
+                    <div style="flex:1; min-width:200px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <h3 id="d_name" style="font-size:20px; font-weight:800; color:var(--text-primary);"></h3>
+                            <span id="d_health_pill" class="badge badge-success"></span>
+                            <span id="d_adoption_pill" class="badge badge-neutral"></span>
+                            <span id="d_presence_pill" class="badge badge-neutral"></span>
+                        </div>
+                        <div class="detail-id-row">
+                            <span class="id-pill" id="d_ulid">ID: —</span>
+                            <span class="id-pill" id="d_code">Kode Kalung: —</span>
+                            <button type="button" class="btn btn-neutral btn-sm" onclick="copyDetailId()" id="d_copy_btn">Salin ID</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-bento-grid">
+                    <div class="detail-card">
+                        <div class="detail-card-title">Identitas &amp; Tampilan</div>
+                        <div class="kv-list">
+                            <div class="kv-row"><span class="kv-key">Jenis Kelamin</span><span class="kv-val" id="d_gender">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Kelompok Umur</span><span class="kv-val" id="d_age">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Warna Utama</span><span class="kv-val" id="d_primary_color">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Pola Bulu</span><span class="kv-val" id="d_fur_pattern">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Zona Kampus</span><span class="kv-val" id="d_territory">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Rarity (Game)</span><span class="kv-val" id="d_rarity">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-card-title">Kesehatan, Steril &amp; Vaksin</div>
+                        <div class="kv-list">
+                            <div class="kv-row"><span class="kv-key">Kondisi</span><span class="kv-val" id="d_health">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Sterilisasi</span><span class="kv-val" id="d_steril">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Vaksinasi</span><span class="kv-val" id="d_vaksin">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Tgl Vaksin</span><span class="kv-val" id="d_vaksin_date">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Catatan Vaksin</span><span class="kv-val" id="d_vaksin_notes">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Kebutuhan Khusus</span><span class="kv-val" id="d_special_needs">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-card-title">Ciri Fisik Terstruktur (Traits)</div>
+                        <div class="kv-list">
+                            <div class="kv-row"><span class="kv-key">Tanda Fisik</span><span class="kv-val" id="d_trait_marks">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Telinga / Ear-tip</span><span class="kv-val" id="d_trait_ear">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Bentuk Ekor</span><span class="kv-val" id="d_trait_tail">—</span></div>
+                            <div class="kv-row"><span class="kv-key">Warna Mata</span><span class="kv-val" id="d_trait_eye">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <div class="detail-card-title">Sifat &amp; Deskripsi</div>
+                        <div class="kv-list">
+                            <div class="kv-row"><span class="kv-key">Sifat</span><span class="kv-val" id="d_temperament">—</span></div>
+                        </div>
+                        <p id="d_description" style="margin-top:10px; font-size:13px; color:var(--text-secondary); line-height:1.6;">—</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-neutral" onclick="closeModal('catDetailModal')">Tutup</button>
+                <button type="button" class="btn btn-neutral" id="d_qr_btn" onclick="openQrFromDetail()">Tag QR Akrilik</button>
+                <button type="button" class="btn btn-primary" id="d_edit_btn" onclick="openEditFromDetail()">Edit Profil</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL TAMBAH / EDIT KUCING -->
     <div class="modal-backdrop" id="catFormModal" role="dialog" aria-modal="true" aria-labelledby="catFormTitle">
@@ -981,7 +1456,6 @@
             <form method="POST" id="catFormEl" action="/admin/cats" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
-                    <!-- 1. Identitas & Fisik -->
                     <div class="form-section">
                         <div class="form-section-title">1. Identitas &amp; Tampilan Fisik</div>
                         <div class="form-grid">
@@ -1040,7 +1514,6 @@
                         </div>
                     </div>
 
-                    <!-- 2. Kesehatan, Steril & Vaksin -->
                     <div class="form-section">
                         <div class="form-section-title">2. Kesehatan, Sterilisasi &amp; Vaksinasi</div>
                         <div class="form-grid form-grid-3">
@@ -1085,7 +1558,6 @@
                         </div>
                     </div>
 
-                    <!-- 3. Status Adopsi, Keberadaan & Sifat -->
                     <div class="form-section">
                         <div class="form-section-title">3. Adopsi, Keberadaan &amp; Karakter</div>
                         <div class="form-grid">
@@ -1120,7 +1592,6 @@
                         </div>
                     </div>
 
-                    <!-- 4. Ciri Fisik Khusus (Game & Rekans Caps) -->
                     <div class="form-section">
                         <div class="form-section-title">4. Ciri Fisik Terstruktur (Game &amp; Identifikasi)</div>
                         <div class="form-grid">
@@ -1162,21 +1633,21 @@
                 <div class="acrylic-stage">
                     <div class="acrylic-card">
                         <div class="acrylic-svg-frame" id="qrModalFrontSlot"></div>
-                        <span class="acrylic-caption">Sisi Depan — Nama &amp; QR Kalung</span>
+                        <span class="acrylic-caption">Sisi Depan &mdash; Nama &amp; QR Kalung</span>
                     </div>
                     <div class="acrylic-card">
                         <div class="acrylic-svg-frame" id="qrModalBackSlot"></div>
-                        <span class="acrylic-caption">Sisi Belakang — Branding Meowtopia</span>
+                        <span class="acrylic-caption">Sisi Belakang &mdash; Branding Meowtopia</span>
                     </div>
                 </div>
 
                 <div class="qr-meta-bar">
                     <div>
-                        <div style="color:var(--text-muted); font-size:11px; font-weight:600; text-transform:uppercase;">Payload QR Resmi</div>
+                        <div style="color:var(--text-muted); font-size:11px; font-weight:700; text-transform:uppercase;">Payload QR Resmi</div>
                         <div style="font-family:ui-monospace,Consolas,monospace; font-weight:600; margin-top:2px;" id="qrModalPayload"></div>
                     </div>
                     <div>
-                        <div style="color:var(--text-muted); font-size:11px; font-weight:600; text-transform:uppercase;">Diterbitkan</div>
+                        <div style="color:var(--text-muted); font-size:11px; font-weight:700; text-transform:uppercase;">Diterbitkan</div>
                         <div style="font-weight:500; margin-top:2px;" id="qrModalIssued"></div>
                     </div>
                 </div>
@@ -1184,7 +1655,7 @@
             <div class="modal-footer" style="justify-content:space-between;">
                 <div>
                     @if($canRegenerateQr)
-                    <form method="POST" id="qrRegenerateForm" action="" onsubmit="return confirm('Cabut QR lama dan terbitkan token QR baru? Stiker/tag lama tidak akan bisa dipindai lagi.');" style="display:inline;">
+                    <form method="POST" id="qrRegenerateForm" action="" onsubmit="return confirm('Cabut QR lama dan terbitkan token QR baru? Tag lama tidak akan bisa dipindai lagi.');" style="display:inline;">
                         @csrf
                         <input type="hidden" name="reason" value="Regenerasi tag akrilik dari panel admin">
                         <button type="submit" class="btn btn-danger btn-sm">Regenerate QR Baru</button>
@@ -1202,9 +1673,11 @@
     </div>
 
     <script>
+        let currentDetailCat = null;
+
         (function initSidebar() {
             const collapsed = localStorage.getItem('meow_admin_sidebar_collapsed') === '1';
-            if (collapsed && window.innerWidth > 820) {
+            if (collapsed && window.innerWidth > 860) {
                 document.body.classList.add('sidebar-collapsed');
                 const btn = document.getElementById('sidebarToggleBtn');
                 if (btn) btn.textContent = '>';
@@ -1214,7 +1687,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('appSidebar');
             const btn = document.getElementById('sidebarToggleBtn');
-            if (window.innerWidth <= 820) {
+            if (window.innerWidth <= 860) {
                 sidebar.classList.toggle('mobile-open');
                 return;
             }
@@ -1223,15 +1696,12 @@
             btn.textContent = isCollapsed ? '>' : '<';
         }
 
-        function openModal(id) {
-            document.getElementById(id).classList.add('open');
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('open');
-        }
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeModal('catDetailModal');
                 closeModal('catFormModal');
                 closeModal('qrPreviewModal');
             }
@@ -1242,6 +1712,86 @@
                 if (e.target === backdrop) backdrop.classList.remove('open');
             });
         });
+
+        function openDetailModal(cat) {
+            currentDetailCat = cat;
+            document.getElementById('detailCatTitle').textContent = 'Detail Kucing — ' + cat.name;
+            document.getElementById('d_name').textContent = cat.name;
+            document.getElementById('d_ulid').textContent = 'ID: ' + cat.id;
+            document.getElementById('d_code').textContent = 'Kode Kalung: ' + cat.unique_code;
+            document.getElementById('d_copy_btn').textContent = 'Salin ID';
+
+            const photoEl = document.getElementById('d_photo');
+            const avatarEl = document.getElementById('d_avatar');
+            if (cat.photo_url) {
+                photoEl.src = cat.photo_url;
+                photoEl.style.display = 'block';
+                avatarEl.style.display = 'none';
+            } else {
+                photoEl.style.display = 'none';
+                avatarEl.textContent = (cat.name || 'K').substring(0, 1).toUpperCase();
+                avatarEl.style.display = 'inline-flex';
+            }
+
+            const hp = document.getElementById('d_health_pill');
+            hp.textContent = cat.health_label;
+            hp.className = 'badge ' + (cat.health_status === 'HEALTHY' ? 'badge-success' : (cat.health_status === 'UNDER_CARE' ? 'badge-warning' : 'badge-danger'));
+
+            const ap = document.getElementById('d_adoption_pill');
+            ap.textContent = cat.adoption_label;
+            ap.className = 'badge ' + (cat.adoption_status === 'READY' ? 'badge-success' : (cat.adoption_status === 'ADOPTED' ? 'badge-info' : 'badge-neutral'));
+
+            document.getElementById('d_presence_pill').textContent = cat.presence_label;
+
+            document.getElementById('d_gender').textContent = cat.gender_label || '—';
+            document.getElementById('d_age').textContent = cat.age_label || '—';
+            document.getElementById('d_primary_color').textContent = cat.primary_color || cat.color_pattern || '—';
+            document.getElementById('d_fur_pattern').textContent = cat.fur_pattern || '—';
+            document.getElementById('d_territory').textContent = cat.territory_name || '—';
+            document.getElementById('d_rarity').textContent = cat.game_rarity || '—';
+
+            document.getElementById('d_health').textContent = cat.health_label || '—';
+            document.getElementById('d_steril').textContent = cat.is_sterilized === '1' ? 'Sudah Steril' : (cat.is_sterilized === '0' ? 'Belum Steril' : 'Belum diketahui');
+            document.getElementById('d_vaksin').textContent = cat.is_vaccinated === '1' ? 'Sudah Vaksin' : (cat.is_vaccinated === '0' ? 'Belum Vaksin' : 'Belum diketahui');
+            document.getElementById('d_vaksin_date').textContent = cat.vaccinated_at || '—';
+            document.getElementById('d_vaksin_notes').textContent = cat.vaccination_notes || '—';
+            document.getElementById('d_special_needs').textContent = cat.special_needs || '—';
+
+            const traits = cat.traits || {};
+            document.getElementById('d_trait_marks').textContent = traits.physical_marks || '—';
+            document.getElementById('d_trait_ear').textContent = traits.ear_tip || '—';
+            document.getElementById('d_trait_tail').textContent = traits.tail_type || '—';
+            document.getElementById('d_trait_eye').textContent = traits.eye_color || '—';
+
+            document.getElementById('d_temperament').textContent = cat.temperament || '—';
+            document.getElementById('d_description').textContent = cat.description || 'Belum ada deskripsi tambahan.';
+
+            document.getElementById('d_qr_btn').style.display = cat.has_qr && !cat.trashed ? 'inline-flex' : 'none';
+            document.getElementById('d_edit_btn').style.display = !cat.trashed ? 'inline-flex' : 'none';
+
+            openModal('catDetailModal');
+        }
+
+        function copyDetailId() {
+            if (!currentDetailCat) return;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(currentDetailCat.id).then(function () {
+                    document.getElementById('d_copy_btn').textContent = 'Tersalin';
+                });
+            }
+        }
+
+        function openEditFromDetail() {
+            if (!currentDetailCat) return;
+            closeModal('catDetailModal');
+            openEditModal(currentDetailCat);
+        }
+
+        function openQrFromDetail() {
+            if (!currentDetailCat) return;
+            closeModal('catDetailModal');
+            openQrModal(currentDetailCat.id, currentDetailCat.name, currentDetailCat.unique_code);
+        }
 
         function previewPhotoInput(input) {
             const img = document.getElementById('f_photo_preview');
@@ -1276,7 +1826,7 @@
             const form = document.getElementById('catFormEl');
             form.reset();
             form.action = '/admin/cats/' + cat.id + '/update';
-            document.getElementById('catFormTitle').textContent = 'Edit Kucing — ' + cat.name + ' (' + cat.unique_code + ')';
+            document.getElementById('catFormTitle').textContent = 'Edit Kucing — ' + cat.name;
             document.getElementById('catFormSubmitBtn').textContent = 'Simpan Perubahan';
 
             document.getElementById('f_name').value = cat.name || '';

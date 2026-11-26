@@ -54,9 +54,9 @@
             padding: 0;
         }
 
-        body {
+            body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-page);
+            background: #EEF3F9;
             color: var(--text-primary);
             font-size: 14px;
             line-height: 1.5;
@@ -65,48 +65,49 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ================= NAVY COLLAPSIBLE SIDEBAR & EDGE TOGGLE ================= */
+        /* ================= FLOATING ROUNDED BENTO SIDEBAR (SYNCED WITH /admin/cats) ================= */
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--sidebar-navy);
+            background: linear-gradient(180deg, #132C52 0%, var(--sidebar-navy) 100%);
             color: #FFFFFF;
             display: flex;
             flex-direction: column;
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            top: 14px;
+            left: 14px;
+            bottom: 14px;
             z-index: 60;
-            border-right: 1px solid var(--sidebar-navy-border);
+            border-radius: 22px;
+            box-shadow: 0 14px 36px rgba(11, 25, 44, 0.18);
             overflow: visible;
             transition: width 0.26s cubic-bezier(0.4, 0, 0.2, 1), transform 0.26s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-edge-toggle {
             position: fixed;
-            top: 21px;
-            left: var(--sidebar-w);
+            top: 34px;
+            left: calc(var(--sidebar-w) + 3px);
             z-index: 65;
-            width: 22px;
-            height: 34px;
-            background: var(--sidebar-navy);
-            color: #FFFFFF;
-            border: 1px solid var(--sidebar-navy-border);
-            border-left: none;
-            border-radius: 0 6px 6px 0;
+            width: 24px;
+            height: 24px;
+            background: #FFFFFF;
+            color: var(--sidebar-navy);
+            border: 1px solid var(--border);
+            border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
             line-height: 1;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
             transition: left 0.26s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s ease;
             user-select: none;
         }
 
         .sidebar-edge-toggle:hover {
-            background: var(--sidebar-navy-hover);
+            background: #F8FAFC;
         }
 
         .sidebar-brand {
@@ -211,17 +212,18 @@
         }
 
         .nav-item.active {
-            background: var(--primary);
-            color: #FFFFFF;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
+            background: #FFFFFF;
+            color: #0F2442;
+            font-weight: 700;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
         }
 
         .nav-count {
-            font-size: 11.5px;
-            font-weight: 600;
-            padding: 1px 7px;
-            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
             background: rgba(255, 255, 255, 0.14);
             color: #FFFFFF;
             white-space: nowrap;
@@ -233,13 +235,14 @@
         }
 
         .nav-item.active .nav-count {
-            background: rgba(0, 0, 0, 0.22);
+            background: #FFF7ED;
+            color: var(--primary);
         }
 
         /* ================= MAIN WRAPPER & TOPBAR ================= */
         .main-wrapper {
             flex: 1;
-            margin-left: var(--sidebar-w);
+            margin-left: calc(var(--sidebar-w) + 28px);
             min-width: 0;
             display: flex;
             flex-direction: column;
@@ -252,11 +255,11 @@
             }
 
             body.sidebar-collapsed .sidebar-edge-toggle {
-                left: var(--sidebar-collapsed-w);
+                left: calc(var(--sidebar-collapsed-w) + 3px);
             }
 
             body.sidebar-collapsed .main-wrapper {
-                margin-left: var(--sidebar-collapsed-w);
+                margin-left: calc(var(--sidebar-collapsed-w) + 28px);
             }
 
             body.sidebar-collapsed .sidebar-brand {
@@ -471,54 +474,127 @@
             padding: 0 4px;
         }
 
-        /* ================= CLEAN SUMMARY METRICS ================= */
+        /* ================= MODERN BENTO SUMMARY METRICS (SHARED WITH /admin/cats) ================= */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 20px;
         }
 
         .stat-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 14px 16px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #FFFFFF 0%, #FFF7ED 100%);
+            border: 1px solid #FED7AA;
+            border-radius: 18px;
+            padding: 16px 18px 18px;
             text-decoration: none;
             color: inherit;
             display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            transition: border-color 0.15s ease;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(15, 36, 66, 0.05);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            --card-accent: #EA580C;
+            --chip-bg: #FFEDD5;
+        }
+
+        .stat-item.stat-card-green {
+            background: linear-gradient(145deg, #FFFFFF 0%, #E8FBF1 100%);
+            border-color: #A7F3D0;
+            --card-accent: #15803D;
+            --chip-bg: #DCFCE7;
+        }
+
+        .stat-item.stat-card-amber {
+            background: linear-gradient(145deg, #FFFFFF 0%, #FFFBEB 100%);
+            border-color: #FDE68A;
+            --card-accent: #B45309;
+            --chip-bg: #FEF3C7;
+        }
+
+        .stat-item.stat-card-slate {
+            background: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%);
+            border-color: #CBD5E1;
+            --card-accent: #475569;
+            --chip-bg: #E2E8F0;
         }
 
         .stat-item:hover {
-            border-color: var(--border-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(15, 36, 66, 0.09);
         }
 
         .stat-item.active {
-            border-color: var(--primary);
-            background: #FFFBF7;
+            box-shadow: 0 0 0 2px var(--primary), 0 8px 20px rgba(234, 88, 12, 0.12);
+        }
+
+        .stat-icon-chip {
+            position: relative;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: var(--chip-bg);
+            color: var(--card-accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon-chip svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .stat-body {
+            position: relative;
+            z-index: 2;
         }
 
         .stat-label {
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 12.5px;
+            font-weight: 600;
             color: var(--text-secondary);
+            margin-top: 3px;
+            display: block;
         }
 
         .stat-value {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
             color: var(--text-primary);
+            line-height: 1.1;
+            display: block;
+        }
+
+        .stat-watermark {
+            position: absolute;
+            right: -10px;
+            bottom: -14px;
+            width: 78px;
+            height: 78px;
+            color: var(--card-accent);
+            opacity: 0.32;
+            pointer-events: none;
+            transform: rotate(-16deg);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .stat-item:hover .stat-watermark {
+            opacity: 0.45;
+            transform: rotate(-10deg) scale(1.05);
         }
 
         /* ================= MAIN PANEL & TOOLBAR ================= */
         .panel {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 18px;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(15, 36, 66, 0.05);
         }
 
         .toolbar {
@@ -1054,20 +1130,52 @@
             <section id="tabSection-spots" class="tab-section {{ $activeTab === 'spots' ? 'active' : '' }}">
                 <div class="stats-grid">
                     <a href="/admin/feeding?tab=spots" class="stat-item {{ empty($filters['status']) ? 'active' : '' }}">
-                        <span class="stat-label">Total Spot</span>
-                        <span class="stat-value">{{ $allSpotsCount }}</span>
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $allSpotsCount }}</span>
+                            <span class="stat-label">Total Spot</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=ACTIVE" class="stat-item {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'active' : '' }}">
-                        <span class="stat-label">Aktif</span>
-                        <span class="stat-value">{{ $activeCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=ACTIVE" class="stat-item stat-card-green {{ ($filters['status'] ?? '') === 'ACTIVE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $activeCount }}</span>
+                            <span class="stat-label">Aktif</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=TEMPORARILY_UNAVAILABLE" class="stat-item {{ ($filters['status'] ?? '') === 'TEMPORARILY_UNAVAILABLE' ? 'active' : '' }}">
-                        <span class="stat-label">Sementara Tutup</span>
-                        <span class="stat-value">{{ $tempCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=TEMPORARILY_UNAVAILABLE" class="stat-item stat-card-amber {{ ($filters['status'] ?? '') === 'TEMPORARILY_UNAVAILABLE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $tempCount }}</span>
+                            <span class="stat-label">Sementara Tutup</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
-                    <a href="/admin/feeding?tab=spots&status=INACTIVE" class="stat-item {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'active' : '' }}">
-                        <span class="stat-label">Nonaktif</span>
-                        <span class="stat-value">{{ $inactiveCount }}</span>
+                    <a href="/admin/feeding?tab=spots&status=INACTIVE" class="stat-item stat-card-slate {{ ($filters['status'] ?? '') === 'INACTIVE' ? 'active' : '' }}">
+                        <span class="stat-icon-chip">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        </span>
+                        <div class="stat-body">
+                            <span class="stat-value">{{ $inactiveCount }}</span>
+                            <span class="stat-label">Nonaktif</span>
+                        </div>
+                        <svg class="stat-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <circle cx="7" cy="9" r="2.2"/><circle cx="11.5" cy="6" r="2.2"/><circle cx="16.5" cy="8" r="2.2"/><circle cx="19" cy="12.5" r="2"/><path d="M12.2 11c-3.2 0-5.9 2.7-5.9 5.4 0 2 1.5 3.4 3.4 3.4 1 0 1.8-.3 2.5-.3s1.5.3 2.6.3c1.9 0 3.3-1.4 3.3-3.4 0-2.7-2.7-5.4-5.9-5.4Z"/>
+                        </svg>
                     </a>
                 </div>
 
