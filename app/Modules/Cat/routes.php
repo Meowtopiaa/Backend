@@ -46,3 +46,8 @@ Route::prefix('admin/cats')->middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/qr/regenerate', [AdminCatController::class, 'regenerateQr']);
     });
 });
+
+// Views Registration for Admin Cat Catalog & Acrylic QR Sheet (MEOW-37)
+if (function_exists('view')) {
+    view()->addNamespace('cat', __DIR__ . '/resources/views');
+}

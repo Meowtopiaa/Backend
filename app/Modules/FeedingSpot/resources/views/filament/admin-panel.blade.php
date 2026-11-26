@@ -919,15 +919,30 @@
 
     <!-- DARK NAVY COLLAPSIBLE SIDEBAR (ICON-ONLY WHEN COLLAPSED) -->
     <aside class="sidebar" id="appSidebar">
-        <div class="sidebar-brand" data-tooltip="MEOWTOPIA — Feeding Spot">
+        <div class="sidebar-brand" data-tooltip="MEOWTOPIA — Admin Portal">
             <img src="/api/v1/feeding/assets/logo.jpg" alt="Meowtopia" class="sidebar-logo">
             <div class="sidebar-brand-text">
                 <div class="sidebar-brand-title">MEOWTOPIA</div>
-                <div class="sidebar-brand-sub">Feeding Spot</div>
+                <div class="sidebar-brand-sub">Admin Portal</div>
             </div>
         </div>
 
         <nav class="sidebar-nav">
+            @if(auth()->user()?->can('cat.edit') || auth()->user()?->can('cat.curate'))
+            <a href="/admin/cats" class="nav-item" style="text-decoration: none;" data-tooltip="Katalog Kucing" aria-label="Katalog Kucing">
+                <span class="nav-item-label">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="4" r="2"/>
+                        <circle cx="18" cy="8" r="2"/>
+                        <circle cx="20" cy="16" r="2"/>
+                        <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
+                    </svg>
+                    <span class="nav-item-text">Katalog Kucing</span>
+                </span>
+                <span class="nav-count">{{ \App\Modules\Cat\Models\Cat::count() }}</span>
+            </a>
+            @endif
+
             @if($canManageSpots)
             <button type="button" class="nav-item {{ $activeTab === 'spots' ? 'active' : '' }}" id="navBtn-spots" onclick="switchTab('spots')" data-tooltip="Lokasi Feeding Spot ({{ $allSpotsCount }})" aria-label="Lokasi Feeding Spot">
                 <span class="nav-item-label">

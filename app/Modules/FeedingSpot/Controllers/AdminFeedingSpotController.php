@@ -35,7 +35,7 @@ class AdminFeedingSpotController extends Controller
     {
         Auth::shouldUse('web');
         if (Auth::guard('web')->check() && $this->canAccessAdminPanel(Auth::guard('web')->user())) {
-            return redirect('/admin/feeding');
+            return redirect('/admin');
         }
 
         return view('feeding-spot::filament.admin-login');
@@ -63,7 +63,7 @@ class AdminFeedingSpotController extends Controller
             return back()->withErrors(['email' => 'Akun ini tidak memiliki akses ke panel admin.'])->onlyInput('email');
         }
 
-        return redirect()->intended('/admin/feeding');
+        return redirect()->intended('/admin');
     }
 
     public function adminLogout(Request $request)
@@ -78,7 +78,13 @@ class AdminFeedingSpotController extends Controller
 
     private function canAccessAdminPanel(?User $user): bool
     {
-        return $user !== null && ($user->can('spot.manage') || $user->can('feeding.review'));
+        return $user !== null && (
+            $user->can('spot.manage')
+            || $user->can('feeding.review')
+            || $user->can('cat.edit')
+            || $user->can('cat.curate')
+            || $user->can('cat.qr.regenerate')
+        );
     }
 
     /**
