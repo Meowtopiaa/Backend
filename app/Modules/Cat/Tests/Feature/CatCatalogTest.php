@@ -411,7 +411,10 @@ class CatCatalogTest extends TestCase
         $this->actingAs($superAdmin, 'web')
             ->get('/admin/cats')
             ->assertOk()
-            ->assertSee('Detail')
+            ->assertSee('openDetailModal')
+            ->assertSee('Cari kucing atau ID...')
+            ->assertDontSee('Cetak Semua Tag Akrilik')
+            ->assertDontSee('Master data tunggal')
             ->assertSee('10 per halaman')
             ->assertSee('Berikutnya');
 

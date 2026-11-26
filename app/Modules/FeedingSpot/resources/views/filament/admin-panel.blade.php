@@ -616,14 +616,25 @@
         }
 
         .input-control, .select-control {
-            padding: 7px 11px;
+            padding: 8px 12px;
             border: 1px solid var(--border-strong);
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 13px;
             font-family: inherit;
             color: var(--text-primary);
             background: var(--surface);
             outline: none;
+        }
+
+        .select-control {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 15px 15px;
+            cursor: pointer;
         }
 
         .input-control:focus, .select-control:focus {

@@ -243,10 +243,7 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .sidebar-user-info {
-            min-width: 0;
-            overflow: hidden;
-        }
+        .sidebar-user-info { min-width: 0; overflow: hidden; }
         .sidebar-user-name {
             font-size: 12.5px;
             font-weight: 600;
@@ -255,10 +252,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .sidebar-user-role {
-            font-size: 11px;
-            color: var(--sidebar-text-muted);
-        }
+        .sidebar-user-role { font-size: 11px; color: var(--sidebar-text-muted); }
         .sidebar-logout-btn {
             width: 100%;
             display: flex;
@@ -304,84 +298,42 @@
         }
 
         .page-content {
-            max-width: 1220px;
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
-            padding: 18px 24px 48px;
-        }
-
-        /* ================= TOPBAR PILL BAR ================= */
-        .top-pill-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .breadcrumb-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            padding: 7px 14px;
-            border-radius: 999px;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: var(--text-primary);
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
-        }
-        .breadcrumb-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--primary);
-        }
-        .top-pill-meta {
-            font-size: 12.5px;
-            color: var(--text-muted);
-            font-weight: 500;
+            padding: 20px 24px 48px;
         }
 
         /* ================= BENTO HERO HEADER CARD ================= */
         .bento-hero {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 58%, #FFEDD5 100%);
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF7ED 60%, #FFEDD5 100%);
             border: 1px solid #FED7AA;
             border-radius: var(--radius-bento);
-            padding: 24px 28px;
+            padding: 22px 26px;
             margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
+            gap: 16px;
             flex-wrap: wrap;
             box-shadow: var(--shadow-bento);
         }
         .bento-hero-watermark {
             position: absolute;
-            right: 26%;
+            right: 22%;
             bottom: -24px;
-            width: 150px;
-            height: 150px;
+            width: 140px;
+            height: 140px;
             color: #FB923C;
             opacity: 0.14;
             pointer-events: none;
             transform: rotate(-14deg);
         }
-        .bento-hero-left { position: relative; z-index: 2; max-width: 640px; }
-        .bento-hero-kicker {
-            font-size: 11.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: var(--primary);
-            margin-bottom: 6px;
-        }
+        .bento-hero-left { position: relative; z-index: 2; }
         .bento-hero-title {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.025em;
             color: var(--text-primary);
@@ -390,7 +342,7 @@
         .bento-hero-sub {
             font-size: 13.5px;
             color: var(--text-secondary);
-            margin-top: 6px;
+            margin-top: 4px;
         }
         .bento-hero-actions {
             position: relative;
@@ -398,7 +350,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         /* ================= ALERTS ================= */
@@ -419,11 +370,12 @@
         .alert-close {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 19px;
             line-height: 1;
             color: inherit;
             cursor: pointer;
             opacity: 0.7;
+            padding: 2px 6px;
         }
         .alert-close:hover { opacity: 1; }
 
@@ -469,19 +421,18 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
         }
         .stat-icon-chip {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
             background: var(--chip-bg);
             color: var(--card-accent);
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
-        .stat-icon-chip svg { width: 18px; height: 18px; }
+        .stat-icon-chip svg { width: 20px; height: 20px; }
 
         .stat-body { position: relative; z-index: 2; }
         .stat-value {
@@ -506,13 +457,13 @@
             width: 78px;
             height: 78px;
             color: var(--card-accent);
-            opacity: 0.32;
+            opacity: 0.34;
             pointer-events: none;
             transform: rotate(-16deg);
             transition: transform 0.2s ease, opacity 0.2s ease;
         }
         .stat-item:hover .stat-watermark {
-            opacity: 0.45;
+            opacity: 0.46;
             transform: rotate(-10deg) scale(1.05);
         }
 
@@ -521,7 +472,7 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-bento);
-            overflow: hidden;
+            overflow: visible;
             box-shadow: var(--shadow-bento);
         }
         .toolbar {
@@ -530,16 +481,33 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-            background: var(--surface);
         }
         .filter-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
             flex: 1;
+        }
+
+        /* Search Input with Icon */
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 280px;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--text-muted);
+            pointer-events: none;
         }
 
         .input, .select, .textarea {
@@ -548,10 +516,14 @@
             color: var(--text-primary);
             background: var(--surface-subtle);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 7px 12px;
+            border-radius: 11px;
+            padding: 8px 12px;
             height: 38px;
             transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .input-search {
+            width: 100%;
+            padding-left: 36px;
         }
         .textarea { height: auto; min-height: 76px; resize: vertical; line-height: 1.5; }
         .input:focus, .select:focus, .textarea:focus {
@@ -560,9 +532,118 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
         }
-        .input-search { min-width: 240px; flex: 1; max-width: 340px; }
 
-        /* ================= BUTTONS ================= */
+        /* Native modal select styled cleanly with proper right chevron spacing */
+        .select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 36px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 15px 15px;
+            cursor: pointer;
+        }
+
+        /* ================= CUSTOM DROPDOWN (TOOLBAR FILTERS) ================= */
+        .custom-dd {
+            position: relative;
+            min-width: 156px;
+        }
+        .custom-dd-trigger {
+            width: 100%;
+            height: 38px;
+            padding: 0 14px;
+            border-radius: 11px;
+            border: 1px solid var(--border);
+            background: var(--surface-subtle);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+            white-space: nowrap;
+        }
+        .custom-dd-trigger:hover {
+            background: var(--surface);
+            border-color: var(--border-strong);
+        }
+        .custom-dd.open .custom-dd-trigger {
+            background: var(--surface);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+        }
+        .custom-dd.has-value .custom-dd-trigger {
+            background: #FFF7ED;
+            border-color: #FDBA74;
+            color: #9A3412;
+            font-weight: 600;
+        }
+        .custom-dd-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+        .custom-dd-chevron {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            color: var(--text-muted);
+            transition: transform 0.18s ease;
+        }
+        .custom-dd.open .custom-dd-chevron {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
+        .custom-dd-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 100%;
+            width: max-content;
+            max-width: 280px;
+            max-height: 260px;
+            overflow-y: auto;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 6px;
+            box-shadow: 0 14px 32px rgba(15, 36, 66, 0.14);
+            z-index: 90;
+            display: none;
+        }
+        .custom-dd.open .custom-dd-menu { display: block; }
+        .custom-dd-option {
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 11px;
+            border-radius: 8px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+        .custom-dd-option:hover { background: var(--surface-subtle); }
+        .custom-dd-option.selected {
+            background: #FFF7ED;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ================= BUTTONS & ICON ACTIONS ================= */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -578,24 +659,49 @@
             text-decoration: none;
             cursor: pointer;
             white-space: nowrap;
-            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
         .btn-sm { height: 32px; padding: 0 11px; font-size: 12px; border-radius: 8px; }
         .btn-primary { background: var(--primary); color: #FFFFFF; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.22); }
         .btn-primary:hover { background: var(--primary-hover); }
         .btn-neutral { background: var(--surface); color: var(--text-primary); border-color: var(--border-strong); }
         .btn-neutral:hover { background: var(--surface-subtle); }
-        .btn-detail { background: #F1F5F9; color: var(--sidebar-navy); border-color: #CBD5E1; }
-        .btn-detail:hover { background: #E2E8F0; }
-        .btn-edit { background: var(--edit-bg); color: var(--edit); border-color: var(--edit-border); }
-        .btn-edit:hover { background: #DBEAFE; }
         .btn-danger { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
         .btn-danger:hover { background: #FEE2E2; }
-        .btn-success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
-        .btn-success:hover { background: #DCFCE7; }
+
+        /* Compact Icon-only Table Action Buttons */
+        .actions-cell { display: flex; align-items: center; gap: 6px; }
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.14s ease, border-color 0.14s ease, transform 0.12s ease;
+        }
+        .icon-btn:hover { transform: translateY(-1px); }
+        .icon-btn svg { width: 16px; height: 16px; }
+
+        .icon-btn-detail { background: #F1F5F9; color: #334155; border-color: #E2E8F0; }
+        .icon-btn-detail:hover { background: #E2E8F0; color: #0F172A; }
+
+        .icon-btn-edit { background: var(--edit-bg); color: var(--edit); border-color: var(--edit-border); }
+        .icon-btn-edit:hover { background: #DBEAFE; }
+
+        .icon-btn-qr { background: #FFF7ED; color: var(--primary); border-color: #FED7AA; }
+        .icon-btn-qr:hover { background: #FFEDD5; }
+
+        .icon-btn-delete { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+        .icon-btn-delete:hover { background: #FEE2E2; }
+
+        .icon-btn-restore { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+        .icon-btn-restore:hover { background: #DCFCE7; }
 
         /* ================= COMPACT SCANNABLE TABLE ================= */
-        .table-wrap { width: 100%; overflow-x: auto; }
+        .table-wrap { width: 100%; overflow-x: auto; border-radius: 0 0 var(--radius-bento) var(--radius-bento); }
         table { width: 100%; border-collapse: collapse; text-align: left; }
         th {
             font-size: 11px;
@@ -609,7 +715,7 @@
             white-space: nowrap;
         }
         td {
-            padding: 14px 18px;
+            padding: 13px 18px;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
         }
@@ -617,10 +723,10 @@
         tbody tr:hover { background: #F9FBFD; }
         tbody tr.is-deleted { opacity: 0.6; background: #F8FAFC; }
 
-        .cat-cell { display: flex; align-items: center; gap: 12px; min-width: 200px; }
+        .cat-cell { display: flex; align-items: center; gap: 12px; min-width: 190px; }
         .cat-thumb {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 12px;
             object-fit: cover;
             border: 1px solid var(--border);
@@ -628,14 +734,14 @@
             background: #FFF7ED;
         }
         .cat-avatar-fallback {
-            width: 44px;
-            height: 44px;
+            width: 42px;
+            height: 42px;
             border-radius: 12px;
             background: #FFF7ED;
             border: 1px solid #FED7AA;
             color: #C2410C;
             font-weight: 800;
-            font-size: 16px;
+            font-size: 15px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -662,30 +768,20 @@
         .badge-info { background: var(--edit-bg); color: var(--edit); border-color: var(--edit-border); }
         .badge-neutral { background: var(--surface-subtle); color: var(--text-secondary); border-color: var(--border); }
 
-        .actions-cell { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
         /* ================= PAGINATION FOOTER ================= */
         .pagination-bar {
             padding: 14px 20px;
             border-top: 1px solid var(--border);
             background: var(--surface-subtle);
+            border-radius: 0 0 var(--radius-bento) var(--radius-bento);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
             flex-wrap: wrap;
         }
-        .pagination-info {
-            font-size: 12.5px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-        .pagination-links {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .pagination-info { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+        .pagination-links { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .page-btn {
             min-width: 34px;
             height: 34px;
@@ -706,14 +802,10 @@
         .page-btn.active { background: var(--sidebar-navy); color: #FFFFFF; border-color: var(--sidebar-navy); }
         .page-btn.disabled { opacity: 0.45; pointer-events: none; }
 
-        .empty-state {
-            padding: 56px 24px;
-            text-align: center;
-            color: var(--text-muted);
-        }
+        .empty-state { padding: 56px 24px; text-align: center; color: var(--text-muted); }
         .empty-state-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
 
-        /* ================= MODALS ================= */
+        /* ================= MODALS (PROPER FLEX SCROLLING!) ================= */
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -739,6 +831,14 @@
             box-shadow: 0 28px 56px rgba(15, 23, 42, 0.24);
         }
         .modal-box.modal-qr { max-width: 820px; }
+        #catFormModal .modal-box { height: min(88vh, 860px); }
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
         .modal-header {
             padding: 18px 24px;
             border-bottom: 1px solid var(--border);
@@ -746,12 +846,15 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
+            flex-shrink: 0;
         }
         .modal-title { font-size: 16.5px; font-weight: 700; color: var(--text-primary); }
         .modal-body {
             padding: 20px 24px;
             overflow-y: auto;
-            flex: 1;
+            flex: 1 1 auto;
+            min-height: 0;
+            -webkit-overflow-scrolling: touch;
         }
         .modal-footer {
             padding: 14px 24px;
@@ -762,6 +865,7 @@
             justify-content: flex-end;
             gap: 8px;
             flex-wrap: wrap;
+            flex-shrink: 0;
         }
 
         /* ================= DETAIL MODAL BENTO LAYOUT ================= */
@@ -825,7 +929,6 @@
             border-radius: 14px;
             padding: 14px 16px;
         }
-        .detail-card.span-2 { grid-column: span 2; }
         .detail-card-title {
             font-size: 11px;
             font-weight: 700;
@@ -927,7 +1030,7 @@
             .main-wrapper { margin-left: 0 !important; }
             .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .form-grid, .form-grid-3, .acrylic-stage, .detail-bento-grid { grid-template-columns: 1fr; }
-            .field.span-2, .detail-card.span-2 { grid-column: span 1; }
+            .field.span-2 { grid-column: span 1; }
             .page-content { padding: 16px 14px 36px; }
         }
     </style>
@@ -937,6 +1040,7 @@
     $genderLabels = ['MALE' => 'Jantan', 'FEMALE' => 'Betina', 'UNKNOWN' => 'Belum diketahui'];
     $ageLabels = ['KITTEN' => 'Anak (Kitten)', 'ADULT' => 'Dewasa', 'SENIOR' => 'Senior', 'UNKNOWN' => 'Belum diketahui'];
     $healthLabels = ['HEALTHY' => 'Sehat', 'SICK' => 'Sakit', 'INJURED' => 'Terluka', 'UNDER_CARE' => 'Dalam Perawatan'];
+    $healthFilterOptions = array_merge(['NEEDS_CARE' => 'Perlu Perawatan'], $healthLabels);
     $adoptionLabels = [
         'UNREVIEWED' => 'Belum Dinilai',
         'READY' => 'Siap Adopsi',
@@ -946,6 +1050,18 @@
     ];
     $presenceLabels = ['ON_CAMPUS' => 'Di Kampus', 'ADOPTED' => 'Diadopsi', 'MISSING' => 'Hilang', 'DECEASED' => 'Meninggal'];
     $userInitial = strtoupper(mb_substr(auth()->user()->name ?? 'A', 0, 1));
+
+    $selectedHealthLabel = $filters['health_status'] !== '' ? ($healthFilterOptions[$filters['health_status']] ?? 'Kesehatan') : 'Semua Kesehatan';
+    $selectedAdoptionLabel = $filters['adoption_status'] !== '' ? ($adoptionLabels[$filters['adoption_status']] ?? 'Adopsi') : 'Semua Adopsi';
+    $selectedTerritory = $territories->firstWhere('id', $filters['territory_id']);
+    $selectedTerritoryLabel = $selectedTerritory ? ($selectedTerritory->code . ' — ' . $selectedTerritory->name) : 'Semua Zona';
+
+    $hasActiveFilter = $filters['search'] !== ''
+        || $filters['health_status'] !== ''
+        || $filters['adoption_status'] !== ''
+        || $filters['territory_id'] !== ''
+        || $filters['is_sterilized'] !== ''
+        || $filters['is_vaccinated'] !== '';
 @endphp
 
     <!-- FLOATING ROUNDED BENTO SIDEBAR -->
@@ -1036,16 +1152,7 @@
 
     <div class="main-wrapper">
         <main class="page-content">
-            <!-- TOP PILL BAR -->
-            <div class="top-pill-bar">
-                <div class="breadcrumb-pill">
-                    <span class="breadcrumb-dot"></span>
-                    <span>Katalog Kucing</span>
-                </div>
-                <div class="top-pill-meta">Master data tunggal &middot; Telkom University</div>
-            </div>
-
-            <!-- BENTO HERO BANNER -->
+            <!-- BENTO HERO HEADER -->
             <section class="bento-hero">
                 <svg class="bento-hero-watermark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <circle cx="7" cy="8.5" r="2.2"/>
@@ -1055,12 +1162,10 @@
                     <path d="M12.2 10.6c-3.4 0-6.2 2.9-6.2 5.7 0 2.1 1.6 3.5 3.6 3.5 1.1 0 1.9-.3 2.6-.3.8 0 1.6.3 2.7.3 2 0 3.5-1.4 3.5-3.5 0-2.9-2.8-5.7-6.2-5.7Z"/>
                 </svg>
                 <div class="bento-hero-left">
-                    <div class="bento-hero-kicker">Master Katalog Kucing</div>
-                    <h1 class="bento-hero-title">Kelola Data Kucing &amp; Tag QR Akrilik</h1>
-                    <p class="bento-hero-sub">Satu sumber data resmi untuk Enigma, Game, Rekans Caps, dan Optimind. QR kalung otomatis terbit setiap kucing baru ditambahkan.</p>
+                    <h1 class="bento-hero-title">Katalog Kucing</h1>
+                    <p class="bento-hero-sub">Kelola profil kucing kampus dan cetak tag QR akrilik kalung secara otomatis.</p>
                 </div>
                 <div class="bento-hero-actions">
-                    <a href="/admin/cats/qr-sheet" target="_blank" class="btn btn-neutral">Cetak Semua Tag Akrilik</a>
                     <button type="button" class="btn btn-primary" onclick="openCreateModal()">+ Tambah Kucing</button>
                 </div>
             </section>
@@ -1071,7 +1176,7 @@
                         <span>{{ request()->query('notice') }}</span>
                         @php $highlightCatId = request()->query('created_cat') ?? request()->query('regenerated_cat'); @endphp
                         @if($highlightCatId)
-                            <a href="/admin/cats/{{ $highlightCatId }}/qr-sheet" target="_blank" class="btn btn-neutral btn-sm">Lihat &amp; Cetak Tag Akrilik</a>
+                            <a href="/admin/cats/{{ $highlightCatId }}/qr-sheet" target="_blank" class="btn btn-neutral btn-sm">Cetak Tag Akrilik</a>
                             <a href="/admin/cats/{{ $highlightCatId }}/qr-download?format=acrylic_front" class="btn btn-primary btn-sm">Unduh SVG Depan</a>
                         @endif
                     </div>
@@ -1126,7 +1231,10 @@
                 <a href="/admin/cats?health_status=NEEDS_CARE" class="stat-item stat-card-rose {{ in_array($filters['health_status'], ['NEEDS_CARE', 'SICK', 'INJURED', 'UNDER_CARE'], true) ? 'active' : '' }}">
                     <div class="stat-top">
                         <span class="stat-icon-chip">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12"/><path d="M6 12h12"/></svg>
+                            <!-- Bold solid medical cross (unmistakably medical care, not add) -->
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M9.5 3a1.5 1.5 0 0 0-1.5 1.5V8H4.5A1.5 1.5 0 0 0 3 9.5v5A1.5 1.5 0 0 0 4.5 16H8v3.5A1.5 1.5 0 0 0 9.5 21h5a1.5 1.5 0 0 0 1.5-1.5V16h3.5a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 19.5 8H16V4.5A1.5 1.5 0 0 0 14.5 3h-5Z"/>
+                            </svg>
                         </span>
                     </div>
                     <div class="stat-body">
@@ -1169,48 +1277,90 @@
                 </a>
             </div>
 
-            <!-- MAIN BENTO TABLE PANEL (STREAMLINED 5 COLUMNS + PAGINATION 10/PAGE) -->
+            <!-- MAIN BENTO TABLE PANEL -->
             <div class="panel">
-                <form method="GET" action="/admin/cats" class="toolbar">
+                <form method="GET" action="/admin/cats" id="catalogFilterForm" class="toolbar">
                     <div class="filter-row">
-                        <input type="text" name="search" value="{{ $filters['search'] }}" placeholder="Cari nama, ID kucing, kode kalung, atau warna..." class="input input-search">
-                        <select name="health_status" class="select" onchange="this.form.submit()">
-                            <option value="">Kesehatan</option>
-                            <option value="NEEDS_CARE" {{ $filters['health_status'] === 'NEEDS_CARE' ? 'selected' : '' }}>Perlu Perawatan</option>
-                            @foreach($healthLabels as $k => $v)
-                                <option value="{{ $k }}" {{ $filters['health_status'] === $k ? 'selected' : '' }}>{{ $v }}</option>
-                            @endforeach
-                        </select>
-                        <select name="adoption_status" class="select" onchange="this.form.submit()">
-                            <option value="">Adopsi</option>
-                            @foreach($adoptionLabels as $k => $v)
-                                <option value="{{ $k }}" {{ $filters['adoption_status'] === $k ? 'selected' : '' }}>{{ $v }}</option>
-                            @endforeach
-                        </select>
-                        <select name="territory_id" class="select" onchange="this.form.submit()">
-                            <option value="">Semua Zona</option>
-                            @foreach($territories as $t)
-                                <option value="{{ $t->id }}" {{ $filters['territory_id'] === $t->id ? 'selected' : '' }}>{{ $t->code }} — {{ $t->name }}</option>
-                            @endforeach
-                        </select>
-                        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-secondary); cursor:pointer; padding-left:4px;">
-                            <input type="checkbox" name="include_deleted" value="1" {{ $filters['include_deleted'] ? 'checked' : '' }} onchange="this.form.submit()">
-                            Nonaktif ({{ $stats['inactive'] }})
-                        </label>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button type="submit" class="btn btn-neutral btn-sm">Cari</button>
-                        @if(request()->query())
-                            <a href="/admin/cats" class="btn btn-neutral btn-sm">Reset</a>
+                        <div class="search-wrap">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="text" name="search" id="searchInput" value="{{ $filters['search'] }}" placeholder="Cari kucing atau ID..." class="input input-search" autocomplete="off">
+                        </div>
+
+                        <!-- Custom Dropdown: Kesehatan -->
+                        <div class="custom-dd {{ $filters['health_status'] !== '' ? 'has-value' : '' }}" data-dd="health_status">
+                            <input type="hidden" name="health_status" value="{{ $filters['health_status'] }}">
+                            <button type="button" class="custom-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="custom-dd-label">{{ $selectedHealthLabel }}</span>
+                                <svg class="custom-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="custom-dd-menu" role="listbox">
+                                <button type="button" class="custom-dd-option {{ $filters['health_status'] === '' ? 'selected' : '' }}" data-value="">
+                                    <span>Semua Kesehatan</span>
+                                </button>
+                                @foreach($healthFilterOptions as $k => $v)
+                                    <button type="button" class="custom-dd-option {{ $filters['health_status'] === $k ? 'selected' : '' }}" data-value="{{ $k }}">
+                                        <span>{{ $v }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Custom Dropdown: Adopsi -->
+                        <div class="custom-dd {{ $filters['adoption_status'] !== '' ? 'has-value' : '' }}" data-dd="adoption_status">
+                            <input type="hidden" name="adoption_status" value="{{ $filters['adoption_status'] }}">
+                            <button type="button" class="custom-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="custom-dd-label">{{ $selectedAdoptionLabel }}</span>
+                                <svg class="custom-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="custom-dd-menu" role="listbox">
+                                <button type="button" class="custom-dd-option {{ $filters['adoption_status'] === '' ? 'selected' : '' }}" data-value="">
+                                    <span>Semua Adopsi</span>
+                                </button>
+                                @foreach($adoptionLabels as $k => $v)
+                                    <button type="button" class="custom-dd-option {{ $filters['adoption_status'] === $k ? 'selected' : '' }}" data-value="{{ $k }}">
+                                        <span>{{ $v }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Custom Dropdown: Zona -->
+                        <div class="custom-dd {{ $filters['territory_id'] !== '' ? 'has-value' : '' }}" data-dd="territory_id">
+                            <input type="hidden" name="territory_id" value="{{ $filters['territory_id'] }}">
+                            <button type="button" class="custom-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                                <span class="custom-dd-label">{{ $selectedTerritoryLabel }}</span>
+                                <svg class="custom-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="custom-dd-menu" role="listbox">
+                                <button type="button" class="custom-dd-option {{ $filters['territory_id'] === '' ? 'selected' : '' }}" data-value="">
+                                    <span>Semua Zona</span>
+                                </button>
+                                @foreach($territories as $t)
+                                    <button type="button" class="custom-dd-option {{ $filters['territory_id'] === $t->id ? 'selected' : '' }}" data-value="{{ $t->id }}">
+                                        <span>{{ $t->code }} &mdash; {{ $t->name }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        @if($filters['is_sterilized'] !== '')
+                            <input type="hidden" name="is_sterilized" value="{{ $filters['is_sterilized'] }}">
+                        @endif
+                        @if($filters['is_vaccinated'] !== '')
+                            <input type="hidden" name="is_vaccinated" value="{{ $filters['is_vaccinated'] }}">
                         @endif
                     </div>
+
+                    @if($hasActiveFilter)
+                        <a href="/admin/cats" class="btn btn-neutral btn-sm">Reset</a>
+                    @endif
                 </form>
 
                 <div class="table-wrap">
                     @if($cats->isEmpty())
                         <div class="empty-state">
                             <div class="empty-state-title">Belum ada data kucing yang sesuai filter.</div>
-                            <div style="font-size:13px; margin-bottom:16px;">Tambahkan kucing baru untuk membuat profil master dan tag QR akrilik secara otomatis.</div>
+                            <div style="font-size:13px; margin-bottom:16px;">Coba reset filter atau tambahkan kucing baru.</div>
                             <button type="button" class="btn btn-primary btn-sm" onclick="openCreateModal()">+ Tambah Kucing</button>
                         </div>
                     @else
@@ -1221,7 +1371,7 @@
                                     <th>Zona</th>
                                     <th>Kesehatan</th>
                                     <th>Adopsi</th>
-                                    <th style="width:270px;">Aksi</th>
+                                    <th style="width:170px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1290,7 +1440,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <span style="font-weight:500; color:var(--text-primary);">{{ $cat->territory?->code ?? '—' }}</span>
+                                            <span style="font-weight:600; color:var(--text-primary);">{{ $cat->territory?->code ?? '—' }}</span>
                                             @if($cat->territory)
                                                 <div style="font-size:11.5px; color:var(--text-muted); max-width:210px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $cat->territory->name }}</div>
                                             @endif
@@ -1307,29 +1457,34 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="badge-group">
-                                                <span class="badge {{ $adoptionBadge }}">{{ $adoptionLabels[$cat->adoption_status] ?? $cat->adoption_status }}</span>
-                                                @if($cat->trashed())
-                                                    <span class="badge badge-danger">Nonaktif</span>
-                                                @endif
-                                            </div>
+                                            <span class="badge {{ $adoptionBadge }}">{{ $adoptionLabels[$cat->adoption_status] ?? $cat->adoption_status }}</span>
                                         </td>
                                         <td>
                                             <div class="actions-cell">
-                                                <button type="button" class="btn btn-detail btn-sm" onclick='openDetailModal(@json($catJson))'>Detail</button>
+                                                <button type="button" class="icon-btn icon-btn-detail" title="Detail kucing" aria-label="Detail {{ $cat->name }}" onclick='openDetailModal(@json($catJson))'>
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                </button>
                                                 @if(!$cat->trashed())
-                                                    <button type="button" class="btn btn-edit btn-sm" onclick='openEditModal(@json($catJson))'>Edit</button>
+                                                    <button type="button" class="icon-btn icon-btn-edit" title="Edit profil" aria-label="Edit {{ $cat->name }}" onclick='openEditModal(@json($catJson))'>
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                    </button>
                                                     @if(isset($qrPreviewMap[$cat->id]))
-                                                        <button type="button" class="btn btn-neutral btn-sm" onclick="openQrModal('{{ $cat->id }}', '{{ e($cat->name) }}', '{{ e($cat->unique_code) }}')">Tag QR</button>
+                                                        <button type="button" class="icon-btn icon-btn-qr" title="Tag QR Akrilik" aria-label="Tag QR {{ $cat->name }}" onclick="openQrModal('{{ $cat->id }}', '{{ e($cat->name) }}', '{{ e($cat->unique_code) }}')">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                                                        </button>
                                                     @endif
-                                                    <form method="POST" action="/admin/cats/{{ $cat->id }}/delete" onsubmit="return confirm('Nonaktifkan {{ e($cat->name) }} dari katalog aktif? Riwayat tetap tersimpan.');" style="display:inline;">
+                                                    <form method="POST" action="/admin/cats/{{ $cat->id }}/delete" onsubmit="return confirm('Hapus {{ e($cat->name) }} dari katalog aktif? Riwayat tetap tersimpan.');" style="display:inline;">
                                                         @csrf
-                                                        <button type="submit" class="btn btn-danger btn-sm">Nonaktif</button>
+                                                        <button type="submit" class="icon-btn icon-btn-delete" title="Hapus dari katalog aktif" aria-label="Hapus {{ $cat->name }}">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                        </button>
                                                     </form>
                                                 @else
                                                     <form method="POST" action="/admin/cats/{{ $cat->id }}/restore" style="display:inline;">
                                                         @csrf
-                                                        <button type="submit" class="btn btn-success btn-sm">Pulihkan</button>
+                                                        <button type="submit" class="icon-btn icon-btn-restore" title="Pulihkan kucing" aria-label="Pulihkan {{ $cat->name }}">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                                                        </button>
                                                     </form>
                                                 @endif
                                             </div>
@@ -1368,7 +1523,7 @@
     @endforeach
     <template id="qr-back-shared">{!! $backAcrylicSvg !!}</template>
 
-    <!-- MODAL DETAIL LENGKAP KUCING (ID & SEMUA ATRIBUT LINTAS-MODUL) -->
+    <!-- MODAL DETAIL LENGKAP KUCING -->
     <div class="modal-backdrop" id="catDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailCatTitle">
         <div class="modal-box">
             <div class="modal-header">
@@ -1420,7 +1575,7 @@
                     </div>
 
                     <div class="detail-card">
-                        <div class="detail-card-title">Ciri Fisik Terstruktur (Traits)</div>
+                        <div class="detail-card-title">Ciri Fisik Terstruktur</div>
                         <div class="kv-list">
                             <div class="kv-row"><span class="kv-key">Tanda Fisik</span><span class="kv-val" id="d_trait_marks">—</span></div>
                             <div class="kv-row"><span class="kv-key">Telinga / Ear-tip</span><span class="kv-val" id="d_trait_ear">—</span></div>
@@ -1446,16 +1601,16 @@
         </div>
     </div>
 
-    <!-- MODAL TAMBAH / EDIT KUCING -->
+    <!-- MODAL TAMBAH / EDIT KUCING (PROPERLY SCROLLABLE!) -->
     <div class="modal-backdrop" id="catFormModal" role="dialog" aria-modal="true" aria-labelledby="catFormTitle">
         <div class="modal-box">
             <div class="modal-header">
                 <h2 class="modal-title" id="catFormTitle">Tambah Kucing Baru</h2>
                 <button type="button" class="alert-close" onclick="closeModal('catFormModal')" aria-label="Tutup">&times;</button>
             </div>
-            <form method="POST" id="catFormEl" action="/admin/cats" enctype="multipart/form-data">
+            <form method="POST" id="catFormEl" class="modal-form" action="/admin/cats" enctype="multipart/form-data">
                 @csrf
-                <div class="modal-body">
+                <div class="modal-body" id="catFormBody">
                     <div class="form-section">
                         <div class="form-section-title">1. Identitas &amp; Tampilan Fisik</div>
                         <div class="form-grid">
@@ -1465,7 +1620,7 @@
                             </div>
                             <div class="field">
                                 <label for="f_unique_code">Kode Kalung Cadangan</label>
-                                <input id="f_unique_code" name="unique_code" type="text" class="input" maxlength="32" placeholder="Kosongkan untuk auto (mis. CAT021)">
+                                <input id="f_unique_code" name="unique_code" type="text" class="input" maxlength="32" placeholder="Otomatis jika dikosongkan">
                                 <span class="field-hint">QR Code MTP1.C.* dibuat otomatis saat disimpan.</span>
                             </div>
                             <div class="field">
@@ -1486,16 +1641,16 @@
                             </div>
                             <div class="field">
                                 <label for="f_primary_color">Warna Utama</label>
-                                <input id="f_primary_color" name="primary_color" type="text" class="input" maxlength="80" placeholder="Contoh: Oranye Putih / Hitam">
+                                <input id="f_primary_color" name="primary_color" type="text" class="input" maxlength="80" placeholder="Oranye Putih / Hitam">
                             </div>
                             <div class="field">
                                 <label for="f_fur_pattern">Pola Bulu</label>
-                                <input id="f_fur_pattern" name="fur_pattern" type="text" class="input" maxlength="80" placeholder="Contoh: Tabby / Calico / Tuxedo / Polos">
+                                <input id="f_fur_pattern" name="fur_pattern" type="text" class="input" maxlength="80" placeholder="Tabby / Calico / Polos">
                             </div>
                             <div class="field span-2">
                                 <label for="f_territory_id">Zona / Lokasi Kampus</label>
                                 <select id="f_territory_id" name="territory_id" class="select">
-                                    <option value="">— Belum ditentukan —</option>
+                                    <option value="">Belum ditentukan</option>
                                     @foreach($territories as $t)
                                         <option value="{{ $t->id }}">{{ $t->code }} — {{ $t->name }}</option>
                                     @endforeach
@@ -1507,7 +1662,6 @@
                                     <img id="f_photo_preview" class="photo-preview-img" alt="Pratinjau foto">
                                     <div style="flex:1;">
                                         <input id="f_photo" name="photo" type="file" accept="image/*" onchange="previewPhotoInput(this)" style="font-size:12.5px;">
-                                        <div class="field-hint" style="margin-top:4px;">Digunakan untuk katalog, kartu adopsi, game, dan referensi identifikasi.</div>
                                     </div>
                                 </div>
                             </div>
@@ -1549,11 +1703,11 @@
                             </div>
                             <div class="field">
                                 <label for="f_vaccination_notes">Catatan Vaksin</label>
-                                <input id="f_vaccination_notes" name="vaccination_notes" type="text" class="input" placeholder="Contoh: F3 & Rabies lengkap">
+                                <input id="f_vaccination_notes" name="vaccination_notes" type="text" class="input" placeholder="F3 & Rabies lengkap">
                             </div>
                             <div class="field span-2">
-                                <label for="f_special_needs">Kebutuhan Khusus (Enigma)</label>
-                                <input id="f_special_needs" name="special_needs" type="text" class="input" placeholder="Contoh: Pakan rendah garam / sensitif ikan laut">
+                                <label for="f_special_needs">Kebutuhan Khusus</label>
+                                <input id="f_special_needs" name="special_needs" type="text" class="input" placeholder="Pakan rendah garam / sensitif ikan laut">
                             </div>
                         </div>
                     </div>
@@ -1579,37 +1733,37 @@
                             </div>
                             <div class="field">
                                 <label for="f_temperament">Sifat / Temperamen</label>
-                                <input id="f_temperament" name="temperament" type="text" class="input" placeholder="Contoh: Ramah, tenang, suka dielus">
+                                <input id="f_temperament" name="temperament" type="text" class="input" placeholder="Ramah, tenang, suka dielus">
                             </div>
                             <div class="field">
-                                <label for="f_status_reason">Alasan Perubahan Status (opsional)</label>
-                                <input id="f_status_reason" name="status_reason" type="text" class="input" placeholder="Tercatat otomatis di log status kucing">
+                                <label for="f_status_reason">Alasan Perubahan Status</label>
+                                <input id="f_status_reason" name="status_reason" type="text" class="input" placeholder="Opsional, tercatat di log status">
                             </div>
                             <div class="field span-2">
                                 <label for="f_description">Deskripsi Singkat</label>
-                                <textarea id="f_description" name="description" class="textarea" placeholder="Ringkasan kebiasaan, lokasi favorit, atau informasi penting lain."></textarea>
+                                <textarea id="f_description" name="description" class="textarea" placeholder="Ringkasan kebiasaan atau lokasi favorit kucing."></textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="form-section">
-                        <div class="form-section-title">4. Ciri Fisik Terstruktur (Game &amp; Identifikasi)</div>
+                        <div class="form-section-title">4. Ciri Fisik Terstruktur</div>
                         <div class="form-grid">
                             <div class="field">
                                 <label for="f_traits_marks">Tanda Fisik Khas</label>
-                                <input id="f_traits_marks" name="traits_physical_marks" type="text" class="input" placeholder="Contoh: Bercak putih di hidung">
+                                <input id="f_traits_marks" name="traits_physical_marks" type="text" class="input" placeholder="Bercak putih di hidung">
                             </div>
                             <div class="field">
                                 <label for="f_traits_ear">Telinga / Ear-tip</label>
-                                <input id="f_traits_ear" name="traits_ear_tip" type="text" class="input" placeholder="Contoh: Ear-tip kiri / Utuh">
+                                <input id="f_traits_ear" name="traits_ear_tip" type="text" class="input" placeholder="Ear-tip kiri / Utuh">
                             </div>
                             <div class="field">
                                 <label for="f_traits_tail">Bentuk Ekor</label>
-                                <input id="f_traits_tail" name="traits_tail_type" type="text" class="input" placeholder="Contoh: Panjang / Bengkok / Pendek">
+                                <input id="f_traits_tail" name="traits_tail_type" type="text" class="input" placeholder="Panjang / Bengkok / Pendek">
                             </div>
                             <div class="field">
                                 <label for="f_traits_eye">Warna Mata</label>
-                                <input id="f_traits_eye" name="traits_eye_color" type="text" class="input" placeholder="Contoh: Kuning amber / Hijau">
+                                <input id="f_traits_eye" name="traits_eye_color" type="text" class="input" placeholder="Kuning amber / Hijau">
                             </div>
                         </div>
                     </div>
@@ -1666,7 +1820,7 @@
                     <a id="qrDownloadPng" href="#" class="btn btn-neutral btn-sm">Unduh QR (PNG)</a>
                     <a id="qrDownloadFront" href="#" class="btn btn-neutral btn-sm">Unduh SVG Depan</a>
                     <a id="qrDownloadBack" href="#" class="btn btn-neutral btn-sm">Unduh SVG Belakang</a>
-                    <a id="qrOpenSheet" href="#" target="_blank" class="btn btn-primary btn-sm">Buka Halaman Cetak Akrilik</a>
+                    <a id="qrOpenSheet" href="#" target="_blank" class="btn btn-primary btn-sm">Cetak Tag Akrilik</a>
                 </div>
             </div>
         </div>
@@ -1696,11 +1850,71 @@
             btn.textContent = isCollapsed ? '>' : '<';
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        /* ================= CUSTOM DROPDOWNS & LIVE AUTO-SEARCH ================= */
+        function closeAllDropdowns() {
+            document.querySelectorAll('.custom-dd.open').forEach(function (dd) {
+                dd.classList.remove('open');
+                const btn = dd.querySelector('.custom-dd-trigger');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        document.querySelectorAll('.custom-dd').forEach(function (dd) {
+            const trigger = dd.querySelector('.custom-dd-trigger');
+            const hiddenInput = dd.querySelector('input[type="hidden"]');
+
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const willOpen = !dd.classList.contains('open');
+                closeAllDropdowns();
+                if (willOpen) {
+                    dd.classList.add('open');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            dd.querySelectorAll('.custom-dd-option').forEach(function (opt) {
+                opt.addEventListener('click', function () {
+                    hiddenInput.value = opt.dataset.value || '';
+                    closeAllDropdowns();
+                    document.getElementById('catalogFilterForm').submit();
+                });
+            });
+        });
+
+        document.addEventListener('click', closeAllDropdowns);
+
+        // Live debounced search without needing a Cari button
+        (function initLiveSearch() {
+            const searchInput = document.getElementById('searchInput');
+            if (!searchInput) return;
+            let debounceTimer = null;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    document.getElementById('catalogFilterForm').submit();
+                }, 420);
+            });
+        })();
+
+        /* ================= MODALS ================= */
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            const body = el.querySelector('.modal-body');
+            if (body) body.scrollTop = 0;
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            if (!document.querySelector('.modal-backdrop.open')) {
+                document.body.style.overflow = '';
+            }
+        }
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                closeAllDropdowns();
                 closeModal('catDetailModal');
                 closeModal('catFormModal');
                 closeModal('qrPreviewModal');
@@ -1709,7 +1923,7 @@
 
         document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
             backdrop.addEventListener('click', function (e) {
-                if (e.target === backdrop) backdrop.classList.remove('open');
+                if (e.target === backdrop) closeModal(backdrop.id);
             });
         });
 
