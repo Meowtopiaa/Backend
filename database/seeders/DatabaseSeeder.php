@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Modules\CatHunter\Database\Seeders\CatHunterSeeder;
 use App\Modules\FeedingSpot\Database\Seeders\FeedingSettingSeeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -322,5 +323,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(FeedingSettingSeeder::class);
+        $this->call(CatHunterSeeder::class);
     }
 }

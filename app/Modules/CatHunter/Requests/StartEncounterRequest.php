@@ -2,22 +2,20 @@
 
 namespace App\Modules\CatHunter\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class StartEncounterRequest extends FormRequest
+class StartEncounterRequest extends CatHunterFormRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
     {
         return [
-            'cat_qr_token' => ['required', 'string'],
-            'latitude' => ['required', 'numeric'],
-            'longitude' => ['required', 'numeric'],
-            'condition' => ['required', 'string'],
+            // Opsional: payload QR (MTP1.C.<token>) atau kode manual kalung. Bila diisi, wajib cocok dengan kucing pada URL.
+            'code' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'code.max' => 'Kode QR terlalu panjang.',
         ];
     }
 }
