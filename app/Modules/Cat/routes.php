@@ -36,7 +36,13 @@ Route::prefix('admin/cats')->middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [AdminCatController::class, 'update']);
         Route::patch('/{id}', [AdminCatController::class, 'update']);
         Route::post('/{id}/photos', [AdminCatController::class, 'uploadPhoto']);
+        Route::get('/{id}/qr-download', [AdminCatController::class, 'downloadQr'])->name('admin.cats.qr-download');
         Route::delete('/{id}', [AdminCatController::class, 'destroy']);
         Route::post('/{id}/restore', [AdminCatController::class, 'restore']);
+    });
+
+    Route::middleware('can:cat.qr.regenerate')->group(function () {
+        Route::post('/{id}/qr', [AdminCatController::class, 'regenerateQr']);
+        Route::post('/{id}/qr/regenerate', [AdminCatController::class, 'regenerateQr']);
     });
 });

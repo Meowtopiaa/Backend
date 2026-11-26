@@ -36,8 +36,8 @@ class ScanResolver
         }
 
         // 2. Manual Backup Code Fallback
-        // Check if matches cat unique_code
-        $cat = Cat::where('unique_code', $code)->first();
+        // Check if matches cat unique_code (case-insensitive)
+        $cat = Cat::whereRaw('UPPER(unique_code) = ?', [strtoupper($code)])->first();
         if ($cat) {
             return [
                 'type' => 'cat',

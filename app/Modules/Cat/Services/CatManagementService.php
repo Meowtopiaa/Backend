@@ -324,6 +324,60 @@ class CatManagementService
         });
     }
 
+    /**
+     * Cabut seluruh token ACTIVE milik kucing (status = REVOKED) dan terbitkan
+     * 1 token aktif baru `MTP1.C.<token>` secara transaksional.
+     * Raw token tidak pernah ditulis ke `audit_logs`.
+     */
+    public function regenerateQrToken(Cat $cat, User $actor, ?string $reason = null): CatQrToken
+    {
+        return DB::transaction(function () use ($cat, $actor, $reason) {
+            $revokeReason = $this->nullableTrim($reason) ?? 'Regenerasi QR kalung kucing oleh admin';
+
+            CatQrToken::where('cat_id', $cat->id)
+                ->where('status', 'ACTIVE')
+                ->update([
+                    'status' => 'REVOKED',
+                    'revoked_at' => now(),
+                    'revoked_reason' => $revokeReason,
+                    'updated_at' => now(),
+                ]);
+
+            $newToken = CatQrToken::create([
+                'cat_id' => $cat->id,
+                'token' => $this->qrCodeService->generateToken(),
+                'status' => 'ACTIVE',
+                'issued_by' => $actor->id,
+                'issued_at' => now(),
+            ]);
+
+            $this->recordAudit(
+                $actor,
+                'CAT_QR_REGENERATED',
+                $cat->id,
+                'Token QR kalung lama dicabut (REVOKED) dan token baru diterbitkan. Alasan: ' . $revokeReason
+            );
+
+            return $newToken;
+        });
+    }
+
+    public function ensureActiveQrToken(Cat $cat, ?User $actor = null): CatQrToken
+    {
+        $existing = $cat->activeQrToken()->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        return CatQrToken::create([
+            'cat_id' => $cat->id,
+            'token' => $this->qrCodeService->generateToken(),
+            'status' => 'ACTIVE',
+            'issued_by' => $actor?->id,
+            'issued_at' => now(),
+        ]);
+    }
+
     public function generateUniqueCode(): string
     {
         $existingCodes = Cat::withTrashed()->pluck('unique_code')->all();
