@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Modules\Cat\Controllers\AdminCatController;
 use App\Modules\Cat\Controllers\CatController;
 use App\Modules\Core\Middleware\RequireIdempotencyKey;
 
@@ -23,5 +24,19 @@ Route::prefix('cats')->group(function () {
 
         // Record sighting (with Idempotency-Key)
         Route::post('/{id}/sightings', [CatController::class, 'recordSighting'])->middleware(RequireIdempotencyKey::class);
+    });
+});
+
+// Admin / Data Curator CRUD endpoints — /api/v1/admin/cats/*
+Route::prefix('admin/cats')->middleware('auth:sanctum')->group(function () {
+    Route::middleware('can:cat.edit')->group(function () {
+        Route::get('/', [AdminCatController::class, 'index']);
+        Route::get('/{id}', [AdminCatController::class, 'show']);
+        Route::post('/', [AdminCatController::class, 'store'])->middleware(RequireIdempotencyKey::class);
+        Route::put('/{id}', [AdminCatController::class, 'update']);
+        Route::patch('/{id}', [AdminCatController::class, 'update']);
+        Route::post('/{id}/photos', [AdminCatController::class, 'uploadPhoto']);
+        Route::delete('/{id}', [AdminCatController::class, 'destroy']);
+        Route::post('/{id}/restore', [AdminCatController::class, 'restore']);
     });
 });

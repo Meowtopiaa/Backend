@@ -2,31 +2,69 @@
 
 namespace App\Modules\Cat\Requests;
 
+use App\Modules\Cat\Models\Cat;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCatRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+
+        return $user !== null && ($user->can('cat.edit') || $user->can('cat.curate'));
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $normalized = [];
+
+        foreach (['gender', 'age_group', 'presence_status', 'health_status', 'adoption_status', 'verification_status'] as $field) {
+            if ($this->filled($field) && is_string($this->input($field))) {
+                $normalized[$field] = strtoupper(trim($this->input($field)));
+            }
+        }
+
+        if ($this->filled('unique_code') && is_string($this->input('unique_code'))) {
+            $normalized['unique_code'] = strtoupper(trim($this->input('unique_code')));
+        }
+
+        if (!empty($normalized)) {
+            $this->merge($normalized);
+        }
     }
 
     public function rules(): array
     {
         return [
+            'unique_code' => ['nullable', 'string', 'max:32', 'regex:/^[A-Z0-9\-_]+$/', 'unique:cats,unique_code'],
             'name' => ['required', 'string', 'max:100'],
-            'gender' => ['required', 'in:male,female'],
-            'breed' => ['nullable', 'string', 'max:100'],
-            'primary_color' => ['nullable', 'string', 'max:50'],
-            'pattern' => ['nullable', 'string', 'max:50'],
-            'sterilization_status' => ['boolean'],
-            'health_status' => ['nullable', 'in:healthy,under_treatment,critical'],
-            'adoption_status' => ['nullable', 'in:available,pending,adopted,not_for_adoption'],
-            'description' => ['nullable', 'string'],
-            'primary_photo_url' => ['nullable', 'string'],
-            'last_seen_lat' => ['nullable', 'numeric'],
-            'last_seen_lng' => ['nullable', 'numeric'],
-            'last_seen_location_name' => ['nullable', 'string'],
+            'gender' => ['nullable', 'string', Rule::in(Cat::GENDERS)],
+            'primary_color' => ['nullable', 'string', 'max:80'],
+            'fur_pattern' => ['nullable', 'string', 'max:80'],
+            'color_pattern' => ['nullable', 'string', 'max:160'],
+            'age_group' => ['nullable', 'string', Rule::in(Cat::AGE_GROUPS)],
+            'is_sterilized' => ['nullable', 'boolean'],
+            'is_vaccinated' => ['nullable', 'boolean'],
+            'vaccinated_at' => ['nullable', 'date'],
+            'vaccination_notes' => ['nullable', 'string', 'max:1000'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'temperament' => ['nullable', 'string', 'max:160'],
+            'special_needs' => ['nullable', 'string', 'max:1000'],
+            'traits' => ['nullable', 'array'],
+            'traits.physical_marks' => ['nullable', 'string', 'max:255'],
+            'traits.ear_tip' => ['nullable', 'string', 'max:80'],
+            'traits.tail_type' => ['nullable', 'string', 'max:80'],
+            'traits.eye_color' => ['nullable', 'string', 'max:80'],
+            'territory_id' => ['nullable', 'string', 'size:26', 'exists:territories,id'],
+            'primary_photo_media_id' => ['nullable', 'string', 'size:26', 'exists:media_files,id'],
+            'photo' => ['nullable', 'file', 'image', 'max:5120'],
+            'photo_angle' => ['nullable', 'string', Rule::in(['front', 'left', 'right', 'tail', 'face'])],
+            'presence_status' => ['nullable', 'string', Rule::in(Cat::PRESENCE_STATUSES)],
+            'health_status' => ['nullable', 'string', Rule::in(Cat::HEALTH_STATUSES)],
+            'adoption_status' => ['nullable', 'string', Rule::in(Cat::ADOPTION_STATUSES)],
+            'verification_status' => ['nullable', 'string', Rule::in(Cat::VERIFICATION_STATUSES)],
+            'status_reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 }
