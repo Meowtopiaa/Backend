@@ -1,0 +1,661 @@
+openapi: 3.0.3
+info:
+  title: Meowtopia Emergency Incident Reporting API (Optimind)
+  version: 0.1.0
+  description: >-
+    Kontrak modul IncidentReport berdasarkan PRD v1.1 §5.5, §6.6 (EIR-01..EIR-13), §7.4, §8.7, FIX-02, dan FIX-09,
+    diselaraskan dengan frontend `lib/features/incident_report` (incident_model.dart, incident_service.dart).
+    Semua endpoint butuh token Sanctum dan email terverifikasi. Endpoint bertanda † wajib header Idempotency-Key.
+    Izin memakai permission Spatie: antrean admin butuh incident.view + incident.dispatch, aksi dispatch butuh
+    incident.dispatch, tutup/tolak/duplikat butuh incident.close. Relawan = pengguna dengan baris caretaker_profiles.
+servers:
+  - url: /api/v1
+security:
+  - sanctumBearer: []
+tags:
+  - name: Pelapor
+  - name: Relawan
+  - name: Admin Insiden
+paths:
+  /incidents:
+    post:
+      operationId: createIncident
+      summary: "† Buat tiket insiden (EIR-01..04, EIR-10)."
+      description: >-
+        Respons 201 hanya setelah tiket tersimpan, berisi ticket_code dan status RECEIVED. notification_status awal
+        NOT_REQUESTED (tidak ada klaim relawan sudah diberi tahu). Laporan dari sumber yang sama dengan tiket aktif
+        tetap dibuat (pengguna sudah mengonfirmasi kejadian baru di aplikasi) dan ditautkan lewat possible_duplicate_of
+        untuk admin. Kategori NEW_CAT menambah baris unidentified_sightings (source INCIDENT_NEW_CAT).
+      tags: [Pelapor]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IncidentDraft'
+      responses:
+        '201':
+          description: Tiket tersimpan.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/IncidentDetail'
+        '400': { $ref: '#/components/responses/MissingIdempotencyKey' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/EmailNotVerified' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /incidents/mine:
+    get:
+      operationId: listMyIncidents
+      summary: Daftar tiket milik pelapor (EIR-05).
+      description: Tanpa nomor kontak dan media; hanya media_count.
+      tags: [Pelapor]
+      parameters:
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/IncidentStatus' } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          description: Daftar tiket.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { type: array, items: { $ref: '#/components/schemas/IncidentSummary' } }
+                      meta: { $ref: '#/components/schemas/PaginationMeta' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /incidents/{id}:
+    get:
+      operationId: getIncident
+      summary: Detail tiket dengan riwayat status (EIR-05, FIX-02).
+      description: >-
+        Boleh untuk pelapor, relawan yang ditawari/ditugaskan, dan admin. Pengguna lain menerima 404 tanpa isi.
+        Pelapor melihat label peran pada actor (Pelapor, Admin Insiden, Relawan, Sistem), bukan nama petugas.
+        Field media hanya untuk relawan dan admin; reporter.phone hanya untuk admin.
+      tags: [Pelapor, Relawan]
+      parameters:
+        - $ref: '#/components/parameters/IncidentId'
+      responses:
+        '200':
+          description: Detail tiket.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/IncidentDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /incidents/{id}/status:
+    post:
+      operationId: updateIncidentStatus
+      summary: "† Ubah status lewat transisi yang diizinkan (EIR-07)."
+      description: >-
+        Relawan dengan penugasan ACCEPTED: ASSIGNED→IN_PROGRESS, IN_PROGRESS→RESOLVED. Admin (incident.dispatch):
+        RECEIVED/WAITING_ASSIGNMENT→IN_PROGRESS (ditangani admin), ASSIGNED/IN_PROGRESS→WAITING_ASSIGNMENT (lepas
+        penanggung jawab), RESOLVED→IN_PROGRESS (buka ulang). REJECTED, DUPLICATE, CLOSED butuh incident.close.
+        ASSIGNED hanya lewat penerimaan tugas. Transisi lain 409. Target sama dengan status sekarang dikembalikan
+        tanpa perubahan. RESOLVED mengembalikan health_status kucing yang diubah tiket ini ke cat_health_status
+        (default UNDER_CARE) dan mengirim IncidentResolved.
+      tags: [Relawan, Admin Insiden]
+      parameters:
+        - $ref: '#/components/parameters/IncidentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, note]
+              properties:
+                status: { $ref: '#/components/schemas/IncidentStatus' }
+                note: { type: string, maxLength: 1000 }
+                cat_health_status: { type: string, enum: [HEALTHY, UNDER_CARE], nullable: true }
+                duplicate_of: { type: string, minLength: 26, maxLength: 26, nullable: true, description: Tiket rujukan untuk DUPLICATE }
+      responses:
+        '200':
+          description: Status diperbarui.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/IncidentDetail' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /vets:
+    get:
+      operationId: listVets
+      summary: Kontak dokter hewan aktif (EIR-12). Boleh kosong; tidak ada data fiktif.
+      tags: [Pelapor]
+      responses:
+        '200':
+          description: Daftar kontak.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { type: array, items: { $ref: '#/components/schemas/VetContact' } }
+  /caretaker/tasks:
+    get:
+      operationId: listCaretakerTasks
+      summary: Tugas relawan yang ditawarkan, berjalan, atau selesai 30 hari terakhir.
+      description: 403 bila pengguna belum terdaftar di caretaker_profiles. Tawaran lewat 15 menit diproses kedaluwarsa dulu.
+      tags: [Relawan]
+      responses:
+        '200':
+          description: Daftar tugas, OFFERED lebih dulu.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { type: array, items: { $ref: '#/components/schemas/CaretakerTask' } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /caretaker/tasks/{id}/accept:
+    post:
+      operationId: acceptTask
+      summary: Terima tawaran tugas; tiket menjadi ASSIGNED.
+      tags: [Relawan]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: incident_assignments.id }
+      responses:
+        '200':
+          description: Tugas diterima.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data: { $ref: '#/components/schemas/CaretakerTask' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /caretaker/tasks/{id}/decline:
+    post:
+      operationId: declineTask
+      summary: Tolak tawaran; tiket kembali ke WAITING_ASSIGNMENT.
+      tags: [Relawan]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string, maxLength: 500 }
+      responses:
+        '200': { description: Tugas ditolak. }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/incidents:
+    get:
+      operationId: adminListIncidents
+      summary: Antrean admin (incident.view + incident.dispatch).
+      description: >-
+        Default tanpa status final. Urut urgensi HIGH→LOW lalu terbaru. Daftar memuat lokasi tepat (peran berwenang)
+        tetapi tanpa nomor kontak dan media (EIR-09).
+      tags: [Admin Insiden]
+      parameters:
+        - { name: status, in: query, schema: { type: string }, description: Satu atau beberapa status dipisah koma }
+        - { name: urgency, in: query, schema: { type: string }, description: LOW, MEDIUM, HIGH; boleh dipisah koma }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: source, in: query, schema: { type: string } }
+        - { name: cat_id, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string }, description: Cari ticket_code }
+        - { name: unassigned, in: query, schema: { type: boolean } }
+        - { name: include_final, in: query, schema: { type: boolean } }
+        - { name: from, in: query, schema: { type: string, format: date } }
+        - { name: to, in: query, schema: { type: string, format: date } }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200': { description: Antrean tiket (IncidentSummary + field admin). }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /admin/incidents/hotspots:
+    get:
+      operationId: adminHotspots
+      summary: Peta hotspot insiden (EIR-13), grid 0.001 derajat.
+      tags: [Admin Insiden]
+      parameters:
+        - { name: days, in: query, schema: { type: integer, minimum: 1, maximum: 365, default: 30 } }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Sel grid urut jumlah terbanyak.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            lat: { type: number }
+                            lng: { type: number }
+                            count: { type: integer }
+                            open_count: { type: integer }
+                            categories: { type: object, additionalProperties: { type: integer } }
+  /admin/incidents/{id}:
+    get:
+      operationId: adminGetIncident
+      summary: Detail admin termasuk kontak pelapor, media, dan riwayat penugasan.
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      responses:
+        '200': { description: Detail tiket. }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      operationId: adminUpdateUrgency
+      summary: Koreksi urgensi dengan alasan (diaudit). incident.dispatch.
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [urgency, reason]
+              properties:
+                urgency: { $ref: '#/components/schemas/Urgency' }
+                reason: { type: string, maxLength: 500 }
+      responses:
+        '200': { description: Urgensi diperbarui. }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/incidents/{id}/verify:
+    post:
+      operationId: adminVerifyIncident
+      summary: Verifikasi laporan (IncidentVerified). incident.dispatch.
+      description: >-
+        Sekali per tiket. SICK/INJURED dengan cat_id mengubah health_status lewat CatStatusService. Poin incident.report
+        lewat PointService dengan idempotency_key incident.report:{id} (tidak untuk laporan milik verifikator).
+        RECEIVED berpindah ke WAITING_ASSIGNMENT. Kegagalan poin tidak membatalkan verifikasi (reward.status FAILED).
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, maxLength: 1000 }
+                urgency: { $ref: '#/components/schemas/Urgency' }
+      responses:
+        '200':
+          description: "data: { incident, reward } — reward null bila sudah diverifikasi sebelumnya."
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/incidents/{id}/candidates:
+    get:
+      operationId: adminCandidates
+      summary: Rekomendasi relawan berdasarkan ketersediaan, tugas aktif, wilayah, dan jarak (tambahan, EIR-06).
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      responses:
+        '200': { description: "data: { handled_by_admin_only, candidates[] }" }
+  /admin/incidents/{id}/assign:
+    post:
+      operationId: adminAssign
+      summary: Tawarkan tugas ke satu relawan (EIR-06, EIR-08). incident.dispatch.
+      description: >-
+        Tawaran berlaku 15 menit; penolakan atau tanpa respons mengembalikan tiket ke WAITING_ASSIGNMENT. Sudah ada
+        penanggung jawab aktif lain → 409 dan dicatat di audit_logs, kecuali override=true dengan reason. Tiket dari
+        kucing teradopsi atau source ADOPTION → 409 (ditangani admin, ADP-13). notification_status SENT bila
+        notifikasi in-app tersimpan, FAILED bila gagal; kegagalan tidak membatalkan penugasan.
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [caretaker_id]
+              properties:
+                caretaker_id: { type: string, minLength: 26, maxLength: 26 }
+                override: { type: boolean, default: false }
+                reason: { type: string, maxLength: 500, description: Wajib bila override }
+      responses:
+        '200': { description: "data: { assignment, incident }" }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /admin/incidents/{id}/close:
+    post:
+      operationId: adminClose
+      summary: Tutup tiket RESOLVED setelah peninjauan. incident.close.
+      tags: [Admin Insiden]
+      parameters: [ { $ref: '#/components/parameters/IncidentId' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                note: { type: string, maxLength: 1000 }
+                cat_health_status: { type: string, enum: [HEALTHY, UNDER_CARE] }
+      responses:
+        '200': { description: Tiket CLOSED. }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /admin/vets:
+    get: { operationId: adminListVets, summary: Semua kontak dokter hewan. incident.dispatch., tags: [Admin Insiden], responses: { '200': { description: OK } } }
+    post:
+      operationId: adminCreateVet
+      summary: Tambah kontak dokter hewan (data mitra yang benar).
+      tags: [Admin Insiden]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VetContactInput' }
+      responses:
+        '201': { description: Tersimpan. }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /admin/vets/{id}:
+    get: { operationId: adminGetVet, summary: Detail kontak., tags: [Admin Insiden], parameters: [ { name: id, in: path, required: true, schema: { type: string } } ], responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/NotFound' } } }
+    patch:
+      operationId: adminUpdateVet
+      summary: Ubah kontak (juga PUT). is_active=false menyembunyikan dari GET /vets.
+      tags: [Admin Insiden]
+      parameters: [ { name: id, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/VetContactInput' }
+      responses: { '200': { description: OK } }
+    delete: { operationId: adminDeleteVet, summary: Hapus kontak (diaudit)., tags: [Admin Insiden], parameters: [ { name: id, in: path, required: true, schema: { type: string } } ], responses: { '200': { description: OK } } }
+  /admin/caretakers:
+    get:
+      operationId: adminListCaretakers
+      summary: Daftar relawan insiden. incident.dispatch.
+      tags: [Admin Insiden]
+      parameters: [ { name: available, in: query, schema: { type: boolean } } ]
+      responses: { '200': { description: OK } }
+    post:
+      operationId: adminCreateCaretaker
+      summary: Daftarkan pengguna sebagai relawan. Tidak menetapkan role Spatie (wewenang super_admin).
+      tags: [Admin Insiden]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - type: object
+                  required: [user_id]
+                  properties:
+                    user_id: { type: string, minLength: 26, maxLength: 26 }
+                - $ref: '#/components/schemas/CaretakerInput'
+      responses:
+        '201': { description: Terdaftar. }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /admin/caretakers/{userId}:
+    get: { operationId: adminGetCaretaker, summary: Detail relawan., tags: [Admin Insiden], parameters: [ { name: userId, in: path, required: true, schema: { type: string } } ], responses: { '200': { description: OK } } }
+    patch:
+      operationId: adminUpdateCaretaker
+      summary: Ubah ketersediaan, telepon, wilayah, lokasi terakhir (juga PUT).
+      tags: [Admin Insiden]
+      parameters: [ { name: userId, in: path, required: true, schema: { type: string } } ]
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CaretakerInput' }
+      responses: { '200': { description: OK } }
+    delete:
+      operationId: adminDeleteCaretaker
+      summary: Hapus dari daftar relawan; 409 bila masih punya tugas aktif. Riwayat penugasan tetap.
+      tags: [Admin Insiden]
+      parameters: [ { name: userId, in: path, required: true, schema: { type: string } } ]
+      responses:
+        '200': { description: OK }
+        '409': { $ref: '#/components/responses/Conflict' }
+components:
+  securitySchemes:
+    sanctumBearer:
+      type: http
+      scheme: bearer
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string }
+    IncidentId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, minLength: 26, maxLength: 26 }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PerPage:
+      name: per_page
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+  schemas:
+    Category:
+      type: string
+      enum: [SICK, INJURED, MISSING, FOUND, AGGRESSIVE, DECEASED, NEW_CAT, DAMAGED_QR, OTHER]
+    Urgency:
+      type: string
+      enum: [LOW, MEDIUM, HIGH]
+      description: LOW tidak mendesak; MEDIUM perlu ditangani hari ini; HIGH luka berat atau darurat. Tanpa janji SLA.
+    Source:
+      type: string
+      enum: [DIRECT, GAME, PROFILE, ADOPTION]
+    IncidentStatus:
+      type: string
+      enum: [RECEIVED, WAITING_ASSIGNMENT, ASSIGNED, IN_PROGRESS, RESOLVED, CLOSED, REJECTED, DUPLICATE]
+    NotificationStatus:
+      type: string
+      enum: [NOT_REQUESTED, PENDING, SENT, FAILED]
+    AssignmentStatus:
+      type: string
+      enum: [OFFERED, ACCEPTED, DECLINED, DONE, CANCELLED]
+      description: CANCELLED = dihentikan admin (override/lepas/tutup); tidak muncul di daftar tugas relawan.
+    Location:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat: { type: number, minimum: -90, maximum: 90 }
+        lng: { type: number, minimum: -180, maximum: 180 }
+        accuracy_m: { type: number, minimum: 0 }
+    IncidentDraft:
+      type: object
+      required: [category, urgency, description, location]
+      properties:
+        category:
+          type: string
+          enum: [SICK, INJURED, AGGRESSIVE, DECEASED, OTHER]
+          description: >-
+            Kategori yang boleh dipakai laporan baru (keputusan tim Optimind; menyimpang dari EIR-02, perlu dicatat PM).
+            MISSING, FOUND, NEW_CAT, DAMAGED_QR hanya muncul pada tiket lama.
+        location:
+          allOf:
+            - $ref: '#/components/schemas/Location'
+          description: Wajib di dalam poligon kampus Telkom University Bandung (sama dengan modul Spot Makan); di luar kampus → 422.
+        urgency: { $ref: '#/components/schemas/Urgency' }
+        description: { type: string, minLength: 10, maxLength: 1000 }
+        location_note: { type: string, maxLength: 255 }
+        media_ids:
+          type: array
+          maxItems: 5
+          description: Hasil POST /media milik pelapor; opsional (OQ-11). Satu media hanya untuk satu tiket.
+          items: { type: string, minLength: 26, maxLength: 26 }
+        cat_id: { type: string, nullable: true }
+        source: { $ref: '#/components/schemas/Source' }
+        source_ref: { type: string, maxLength: 100, nullable: true }
+    StatusLog:
+      type: object
+      properties:
+        id: { type: string }
+        from_status: { type: string, nullable: true }
+        to_status: { $ref: '#/components/schemas/IncidentStatus' }
+        actor:
+          type: object
+          description: Admin melihat id dan nama; pelapor dan relawan melihat label peran.
+          properties:
+            id: { type: string }
+            name: { type: string }
+        note: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+    IncidentSummary:
+      type: object
+      properties:
+        id: { type: string }
+        ticket_code: { type: string, example: INC-261127-AB12CD }
+        category: { $ref: '#/components/schemas/Category' }
+        urgency: { $ref: '#/components/schemas/Urgency' }
+        description: { type: string }
+        status: { $ref: '#/components/schemas/IncidentStatus' }
+        cat_id: { type: string, nullable: true }
+        cat:
+          type: object
+          nullable: true
+          properties:
+            id: { type: string }
+            name: { type: string }
+            unique_code: { type: string }
+        location: { $ref: '#/components/schemas/Location' }
+        location_note: { type: string, nullable: true }
+        territory_id: { type: string, nullable: true }
+        source: { $ref: '#/components/schemas/Source' }
+        source_ref: { type: string, nullable: true }
+        assigned_at: { type: string, format: date-time, nullable: true }
+        resolved_at: { type: string, format: date-time, nullable: true }
+        closed_at: { type: string, format: date-time, nullable: true }
+        resolution_note: { type: string, nullable: true }
+        notification_status: { $ref: '#/components/schemas/NotificationStatus' }
+        has_assignee: { type: boolean }
+        media_count: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    IncidentDetail:
+      allOf:
+        - $ref: '#/components/schemas/IncidentSummary'
+        - type: object
+          properties:
+            status_logs: { type: array, items: { $ref: '#/components/schemas/StatusLog' } }
+            media:
+              type: array
+              description: Hanya relawan yang ditugaskan dan admin. url bertanda tangan 10 menit atau null.
+              items:
+                type: object
+                properties:
+                  id: { type: string }
+                  mime: { type: string }
+                  size_bytes: { type: integer }
+                  url: { type: string, nullable: true }
+    CaretakerTask:
+      type: object
+      properties:
+        id: { type: string, description: incident_assignments.id }
+        status: { $ref: '#/components/schemas/AssignmentStatus' }
+        offered_at: { type: string, format: date-time }
+        offer_expires_at: { type: string, format: date-time, nullable: true }
+        responded_at: { type: string, format: date-time, nullable: true }
+        incident: { $ref: '#/components/schemas/IncidentDetail' }
+    VetContact:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        address: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        whatsapp: { type: string, nullable: true }
+        open_hours: { type: string, nullable: true }
+        location: { $ref: '#/components/schemas/Location' }
+    VetContactInput:
+      type: object
+      properties:
+        name: { type: string, maxLength: 150, description: Wajib saat POST }
+        address: { type: string, maxLength: 255 }
+        phone: { type: string, pattern: '^\+?[0-9\s\-]{6,30}$' }
+        whatsapp: { type: string, pattern: '^\+?[0-9\s\-]{6,30}$' }
+        location: { $ref: '#/components/schemas/Location' }
+        open_hours: { type: string, maxLength: 150 }
+        is_active: { type: boolean }
+    CaretakerInput:
+      type: object
+      properties:
+        is_available: { type: boolean }
+        phone: { type: string }
+        territory_ids: { type: array, items: { type: string } }
+        last_location: { $ref: '#/components/schemas/Location' }
+    PaginationMeta:
+      type: object
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+        has_more: { type: boolean }
+    SuccessEnvelope:
+      type: object
+      properties:
+        success: { type: boolean, enum: [true] }
+        message: { type: string }
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, enum: [false] }
+        code: { type: string, example: CONFLICT }
+        message: { type: string }
+        errors: { type: object, additionalProperties: true }
+        request_id: { type: string }
+  responses:
+    Unauthenticated:
+      description: Token tidak ada atau tidak valid.
+    EmailNotVerified:
+      description: "code EMAIL_NOT_VERIFIED atau FORBIDDEN (akun nonaktif)."
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: code FORBIDDEN.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: code NOT_FOUND (juga menyamarkan akses ke tiket orang lain).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: code CONFLICT (transisi tidak diizinkan, penugasan bentrok, atau Idempotency-Key dipakai ulang dengan isi berbeda).
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    ValidationError:
+      description: code VALIDATION_ERROR dengan errors per field.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    MissingIdempotencyKey:
+      description: Header Idempotency-Key tidak ada.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    RateLimited:
+      description: Lebih dari 60 permintaan tulis per menit.
